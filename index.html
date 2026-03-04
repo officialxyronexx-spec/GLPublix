@@ -3,198 +3,209 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gesellschaft Quiz</title>
+<title>Industrialisierungs Quiz</title>
 
 <style>
 body {
-    margin: 0;
     font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #1e3c72, #2a5298);
-    color: white;
     text-align: center;
+    background: linear-gradient(135deg,#1e3c72,#2a5298);
+    color: white;
+    margin:0;
 }
 
-#container {
-    padding: 20px;
-}
-
-h1 {
-    margin-top: 20px;
-}
-
-#timer {
-    font-size: 30px;
-    margin: 20px 0;
-}
-
-#answers {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    max-width: 600px;
-    margin: auto;
+.container {
+    padding:20px;
 }
 
 button {
-    padding: 20px;
-    font-size: 18px;
-    border: none;
-    border-radius: 12px;
-    cursor: pointer;
-    color: white;
+    padding:15px 25px;
+    font-size:16px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    margin:10px;
 }
 
-button:nth-child(1) { background: #e74c3c; }
-button:nth-child(2) { background: #3498db; }
-button:nth-child(3) { background: #f1c40f; color: black; }
-button:nth-child(4) { background: #2ecc71; }
-
-#startBtn {
-    background: black;
-    margin-top: 30px;
+input {
+    padding:10px;
+    font-size:16px;
+    border-radius:8px;
+    border:none;
+    margin:5px;
 }
 
-#leaderboard {
-    margin-top: 20px;
+.answerBtn {
+    display:block;
+    width:80%;
+    margin:10px auto;
 }
+
 </style>
 </head>
 <body>
 
-<div id="container">
-    <h1>Gesellschaft & Industrielle Revolution</h1>
-    <div id="game"></div>
-</div>
+<div class="container" id="app"></div>
 
 <script>
+
+const HOST_EMAIL = "officialxyronexx@gmail.com";
+let gameCode = "";
+let currentQuestion = 0;
+let score = 0;
+let players = [];
+
 const quiz = [
 {
-question: "Was versteht man unter Gesellschaft?",
+question: "Was ist eine Gesellschaft?",
 answers: [
 "Gemeinschaft von Menschen",
-"Eine Maschine",
-"Ein Unternehmen",
-"Ein Königreich"
+"Maschine",
+"Firma",
+"Armee"
 ],
 correct: 0
 },
 {
-question: "Wie lebten die meisten Menschen vor der Industrialisierung?",
+question: "Wie arbeiteten Menschen vor der Industrialisierung?",
 answers: [
-"In Großstädten",
-"In Fabriken",
-"Auf dem Land als Bauern",
-"In Büros"
+"In der Landwirtschaft",
+"In Büros",
+"Mit Robotern",
+"Im Internet"
 ],
-correct: 2
-},
-{
-question: "Warum zogen viele Menschen in Städte?",
-answers: [
-"Urlaub",
-"Fabrikarbeit",
-"Sport",
-"Abenteuer"
-],
-correct: 1
-},
-{
-question: "Welche neue soziale Gruppe entstand?",
-answers: [
-"Ritter",
-"Arbeiterklasse",
-"Pharaonen",
-"Gladiatoren"
-],
-correct: 1
+correct: 0
 }
 ];
 
-let currentQuestion = 0;
-let score = 0;
-let timeLeft = 10;
-let timer;
-let playerName = "";
-
-function startGame() {
-    playerName = document.getElementById("nameInput").value;
-    if(playerName === "") return alert("Bitte Namen eingeben!");
-    score = 0;
-    currentQuestion = 0;
-    loadQuestion();
-}
-
-function loadQuestion() {
-    timeLeft = 10;
-    document.getElementById("game").innerHTML = `
-        <div id="timer">${timeLeft}</div>
-        <h2>${quiz[currentQuestion].question}</h2>
-        <div id="answers"></div>
-    `;
-
-    const answersDiv = document.getElementById("answers");
-
-    quiz[currentQuestion].answers.forEach((answer, index) => {
-        const button = document.createElement("button");
-        button.innerText = answer;
-        button.onclick = () => selectAnswer(index);
-        answersDiv.appendChild(button);
-    });
-
-    startTimer();
-}
-
-function startTimer() {
-    timer = setInterval(() => {
-        timeLeft--;
-        document.getElementById("timer").innerText = timeLeft;
-        if(timeLeft === 0) {
-            clearInterval(timer);
-            nextQuestion();
-        }
-    }, 1000);
-}
-
-function selectAnswer(index) {
-    clearInterval(timer);
-    if(index === quiz[currentQuestion].correct) {
-        score += timeLeft * 10;
-    }
-    nextQuestion();
-}
-
-function nextQuestion() {
-    currentQuestion++;
-    if(currentQuestion < quiz.length) {
-        loadQuestion();
-    } else {
-        endGame();
-    }
-}
-
-function endGame() {
-    let leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
-    leaderboard.push({name: playerName, score});
-    leaderboard.sort((a,b) => b.score - a.score);
-    leaderboard = leaderboard.slice(0,5);
-    localStorage.setItem("leaderboard", JSON.stringify(leaderboard));
-
-    document.getElementById("game").innerHTML = `
-        <h2>Quiz beendet!</h2>
-        <h3>${playerName}, dein Score: ${score}</h3>
-        <div id="leaderboard">
-            <h3>Top 5</h3>
-            ${leaderboard.map(p => `<p>${p.name}: ${p.score}</p>`).join("")}
-        </div>
-        <button id="startBtn" onclick="location.reload()">Neustart</button>
-    `;
-}
-
-document.getElementById("game").innerHTML = `
-    <input id="nameInput" placeholder="Dein Name" style="padding:10px;font-size:16px;border-radius:8px;border:none;">
-    <br>
-    <button id="startBtn" onclick="startGame()">Spiel starten</button>
+// ===== START SCREEN =====
+function showStart() {
+document.getElementById("app").innerHTML = `
+<h1>Gesellschaft Quiz</h1>
+<button onclick="showHostLogin()">Host</button>
+<button onclick="showPlayerJoin()">Spieler</button>
 `;
+}
+
+// ===== HOST LOGIN =====
+function showHostLogin() {
+document.getElementById("app").innerHTML = `
+<h2>Host Login</h2>
+<input id="email" placeholder="E-Mail eingeben">
+<br>
+<button onclick="checkHost()">Einloggen</button>
+`;
+}
+
+function checkHost() {
+let email = document.getElementById("email").value;
+if(email === HOST_EMAIL){
+createGame();
+}else{
+alert("Du bist nicht der Host!");
+showStart();
+}
+}
+
+// ===== GAME CREATION =====
+function createGame(){
+gameCode = Math.floor(100000 + Math.random() * 900000);
+localStorage.setItem("gameCode", gameCode);
+localStorage.setItem("players", JSON.stringify([]));
+
+document.getElementById("app").innerHTML = `
+<h2>Spiel erstellt</h2>
+<p>Spielcode:</p>
+<h1>${gameCode}</h1>
+<p>Teile diesen Code mit deiner Klasse.</p>
+<button onclick="startGame()">Quiz starten</button>
+`;
+}
+
+// ===== PLAYER JOIN =====
+function showPlayerJoin(){
+document.getElementById("app").innerHTML = `
+<h2>Spiel beitreten</h2>
+<input id="name" placeholder="Name">
+<input id="code" placeholder="Code">
+<br>
+<button onclick="joinGame()">Beitreten</button>
+`;
+}
+
+function joinGame(){
+let name = document.getElementById("name").value;
+let code = document.getElementById("code").value;
+
+if(code == localStorage.getItem("gameCode")){
+players = JSON.parse(localStorage.getItem("players")) || [];
+players.push({name:name,score:0});
+localStorage.setItem("players", JSON.stringify(players));
+alert("Erfolgreich beigetreten! Warte bis Host startet.");
+}else{
+alert("Falscher Code!");
+}
+}
+
+// ===== QUIZ START =====
+function startGame(){
+currentQuestion = 0;
+showQuestion();
+}
+
+function showQuestion(){
+let q = quiz[currentQuestion];
+
+document.getElementById("app").innerHTML = `
+<h2>${q.question}</h2>
+<div id="answers"></div>
+`;
+
+q.answers.forEach((a,i)=>{
+let btn = document.createElement("button");
+btn.className = "answerBtn";
+btn.innerText = a;
+btn.onclick = ()=>selectAnswer(i);
+document.getElementById("answers").appendChild(btn);
+});
+}
+
+function selectAnswer(index){
+let q = quiz[currentQuestion];
+if(index === q.correct){
+score += 100;
+}
+nextQuestion();
+}
+
+function nextQuestion(){
+currentQuestion++;
+if(currentQuestion < quiz.length){
+showQuestion();
+}else{
+endGame();
+}
+}
+
+function endGame(){
+document.getElementById("app").innerHTML = `
+<h2>Quiz beendet</h2>
+<p>Host kann jetzt Ergebnisse zeigen.</p>
+<button onclick="showResults()">Ergebnisse anzeigen</button>
+`;
+}
+
+function showResults(){
+players = JSON.parse(localStorage.getItem("players")) || [];
+let resultHTML = players.map(p=>`<p>${p.name}</p>`).join("");
+document.getElementById("app").innerHTML = `
+<h2>Spieler</h2>
+${resultHTML}
+`;
+}
+
+showStart();
+
 </script>
 
 </body>
