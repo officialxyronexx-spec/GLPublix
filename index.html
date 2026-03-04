@@ -3,204 +3,278 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Industrialisierungs Quiz</title>
+<title>Gesellschaft Kahoot System</title>
 
 <style>
-body {
-    font-family: Arial, sans-serif;
-    text-align: center;
-    background: linear-gradient(135deg,#1e3c72,#2a5298);
-    color: white;
+body{
     margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(135deg,#141e30,#243b55);
+    color:white;
+    text-align:center;
 }
 
-.container {
-    padding:20px;
+h1,h2,h3{
+    margin:20px;
 }
 
-button {
+button{
     padding:15px 25px;
-    font-size:16px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
     margin:10px;
-}
-
-input {
-    padding:10px;
-    font-size:16px;
-    border-radius:8px;
     border:none;
-    margin:5px;
+    border-radius:12px;
+    font-size:16px;
+    cursor:pointer;
 }
 
-.answerBtn {
-    display:block;
+input{
+    padding:12px;
+    margin:8px;
+    border-radius:10px;
+    border:none;
+    font-size:16px;
+}
+
+.answerGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:15px;
     width:80%;
-    margin:10px auto;
+    margin:auto;
 }
 
+.answerBtn{
+    padding:20px;
+    font-size:18px;
+    border-radius:15px;
+}
+
+.answerBtn:nth-child(1){background:#e74c3c;}
+.answerBtn:nth-child(2){background:#3498db;}
+.answerBtn:nth-child(3){background:#f1c40f;color:black;}
+.answerBtn:nth-child(4){background:#2ecc71;}
+
+.playerBox{
+    background:white;
+    color:black;
+    margin:5px auto;
+    padding:10px;
+    width:60%;
+    border-radius:8px;
+}
+
+#timer{
+    font-size:40px;
+    margin:20px;
+}
 </style>
 </head>
 <body>
 
-<div class="container" id="app"></div>
+<div id="app"></div>
 
 <script>
 
 const HOST_EMAIL = "officialxyronexx@gmail.com";
+
 let gameCode = "";
-let currentQuestion = 0;
-let score = 0;
 let players = [];
+let currentQuestion = 0;
+let timer;
+let timeLeft = 15;
 
 const quiz = [
 {
-question: "Was ist eine Gesellschaft?",
-answers: [
+question:"Was versteht man unter Gesellschaft?",
+answers:[
 "Gemeinschaft von Menschen",
 "Maschine",
-"Firma",
+"Unternehmen",
 "Armee"
 ],
-correct: 0
+correct:0
 },
 {
-question: "Wie arbeiteten Menschen vor der Industrialisierung?",
-answers: [
+question:"Wie lebten die meisten Menschen vor der Industrialisierung?",
+answers:[
+"In Großstädten",
 "In der Landwirtschaft",
 "In Büros",
-"Mit Robotern",
-"Im Internet"
+"Mit Robotern"
 ],
-correct: 0
+correct:1
+},
+{
+question:"Warum zogen viele Menschen in Städte?",
+answers:[
+"Urlaub",
+"Fabrikarbeit",
+"Sport",
+"Abenteuer"
+],
+correct:1
+},
+{
+question:"Welche neue soziale Gruppe entstand?",
+answers:[
+"Ritter",
+"Arbeiterklasse",
+"Pharaonen",
+"Gladiatoren"
+],
+correct:1
 }
 ];
 
-// ===== START SCREEN =====
-function showStart() {
-document.getElementById("app").innerHTML = `
-<h1>Gesellschaft Quiz</h1>
+function showStart(){
+document.getElementById("app").innerHTML=`
+<h1>Gesellschaft Kahoot System</h1>
 <button onclick="showHostLogin()">Host</button>
 <button onclick="showPlayerJoin()">Spieler</button>
 `;
 }
 
-// ===== HOST LOGIN =====
-function showHostLogin() {
-document.getElementById("app").innerHTML = `
+function showHostLogin(){
+document.getElementById("app").innerHTML=`
 <h2>Host Login</h2>
-<input id="email" placeholder="E-Mail eingeben">
+<input id="email" placeholder="E-Mail">
 <br>
-<button onclick="checkHost()">Einloggen</button>
+<button onclick="hostLogin()">Einloggen</button>
+<button onclick="showStart()">Zurück</button>
 `;
 }
 
-function checkHost() {
-let email = document.getElementById("email").value;
-if(email === HOST_EMAIL){
+function hostLogin(){
+let email=document.getElementById("email").value;
+if(email===HOST_EMAIL){
 createGame();
 }else{
-alert("Du bist nicht der Host!");
-showStart();
+alert("Falsche Host Email!");
 }
 }
 
-// ===== GAME CREATION =====
 function createGame(){
-gameCode = Math.floor(100000 + Math.random() * 900000);
-localStorage.setItem("gameCode", gameCode);
-localStorage.setItem("players", JSON.stringify([]));
-
-document.getElementById("app").innerHTML = `
+gameCode=Math.floor(100000+Math.random()*900000);
+players=[];
+document.getElementById("app").innerHTML=`
 <h2>Spiel erstellt</h2>
-<p>Spielcode:</p>
-<h1>${gameCode}</h1>
-<p>Teile diesen Code mit deiner Klasse.</p>
-<button onclick="startGame()">Quiz starten</button>
+<h1>Code: ${gameCode}</h1>
+<button onclick="showPlayerJoin()">Spieler hinzufügen</button>
+<button onclick="showPlayers()">Spielerliste</button>
+<button onclick="startQuiz()">Quiz starten</button>
 `;
 }
 
-// ===== PLAYER JOIN =====
 function showPlayerJoin(){
-document.getElementById("app").innerHTML = `
+document.getElementById("app").innerHTML=`
 <h2>Spiel beitreten</h2>
 <input id="name" placeholder="Name">
 <input id="code" placeholder="Code">
 <br>
 <button onclick="joinGame()">Beitreten</button>
+<button onclick="showStart()">Zurück</button>
 `;
 }
 
 function joinGame(){
-let name = document.getElementById("name").value;
-let code = document.getElementById("code").value;
+let name=document.getElementById("name").value;
+let code=document.getElementById("code").value;
 
-if(code == localStorage.getItem("gameCode")){
-players = JSON.parse(localStorage.getItem("players")) || [];
+if(code==gameCode){
 players.push({name:name,score:0});
-localStorage.setItem("players", JSON.stringify(players));
-alert("Erfolgreich beigetreten! Warte bis Host startet.");
+alert("Beigetreten!");
 }else{
 alert("Falscher Code!");
 }
 }
 
-// ===== QUIZ START =====
-function startGame(){
-currentQuestion = 0;
-showQuestion();
-}
-
-function showQuestion(){
-let q = quiz[currentQuestion];
-
-document.getElementById("app").innerHTML = `
-<h2>${q.question}</h2>
-<div id="answers"></div>
+function showPlayers(){
+let list=players.map(p=>`<div class="playerBox">${p.name}</div>`).join("");
+document.getElementById("app").innerHTML=`
+<h2>Spielerliste</h2>
+${list}
+<button onclick="createGame()">Zurück</button>
 `;
-
-q.answers.forEach((a,i)=>{
-let btn = document.createElement("button");
-btn.className = "answerBtn";
-btn.innerText = a;
-btn.onclick = ()=>selectAnswer(i);
-document.getElementById("answers").appendChild(btn);
-});
 }
 
-function selectAnswer(index){
-let q = quiz[currentQuestion];
-if(index === q.correct){
-score += 100;
-}
+function startQuiz(){
+currentQuestion=0;
 nextQuestion();
 }
 
 function nextQuestion(){
-currentQuestion++;
-if(currentQuestion < quiz.length){
-showQuestion();
-}else{
+if(currentQuestion>=quiz.length){
 endGame();
-}
+return;
 }
 
-function endGame(){
-document.getElementById("app").innerHTML = `
-<h2>Quiz beendet</h2>
-<p>Host kann jetzt Ergebnisse zeigen.</p>
-<button onclick="showResults()">Ergebnisse anzeigen</button>
+let q=quiz[currentQuestion];
+timeLeft=15;
+
+document.getElementById("app").innerHTML=`
+<h2>Frage ${currentQuestion+1}</h2>
+<div id="timer">${timeLeft}</div>
+<h3>${q.question}</h3>
+<div class="answerGrid" id="answers"></div>
+`;
+
+q.answers.forEach((a,i)=>{
+let btn=document.createElement("button");
+btn.className="answerBtn";
+btn.innerText=a;
+btn.onclick=()=>selectAnswer(i);
+document.getElementById("answers").appendChild(btn);
+});
+
+timer=setInterval(()=>{
+timeLeft--;
+document.getElementById("timer").innerText=timeLeft;
+if(timeLeft<=0){
+clearInterval(timer);
+showLeaderboard();
+}
+},1000);
+}
+
+function selectAnswer(index){
+clearInterval(timer);
+let correct=quiz[currentQuestion].correct;
+
+players.forEach(p=>{
+if(index===correct){
+p.score+=timeLeft*10;
+}
+});
+
+showLeaderboard();
+}
+
+function showLeaderboard(){
+currentQuestion++;
+
+players.sort((a,b)=>b.score-a.score);
+
+let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score} Punkte</div>`).join("");
+
+document.getElementById("app").innerHTML=`
+<h2>Zwischenstand</h2>
+${list}
+<button onclick="nextQuestion()">Nächste Frage</button>
 `;
 }
 
-function showResults(){
-players = JSON.parse(localStorage.getItem("players")) || [];
-let resultHTML = players.map(p=>`<p>${p.name}</p>`).join("");
-document.getElementById("app").innerHTML = `
-<h2>Spieler</h2>
-${resultHTML}
+function endGame(){
+players.sort((a,b)=>b.score-a.score);
+
+let winner=players[0];
+
+let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("");
+
+document.getElementById("app").innerHTML=`
+<h1>Spiel beendet!</h1>
+<h2>Gewinner: ${winner ? winner.name : "Niemand"}</h2>
+${list}
+<button onclick="showStart()">Neues Spiel</button>
 `;
 }
 
