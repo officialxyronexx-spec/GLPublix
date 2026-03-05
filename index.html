@@ -3,282 +3,361 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gesellschaft Kahoot System</title>
+<title>Gesellschaft Quiz</title>
 
 <style>
+
 body{
-    margin:0;
-    font-family:Arial, sans-serif;
-    background:linear-gradient(135deg,#141e30,#243b55);
-    color:white;
-    text-align:center;
+margin:0;
+font-family:'Segoe UI',sans-serif;
+background:linear-gradient(135deg,#141e30,#243b55);
+color:white;
+display:flex;
+justify-content:center;
+align-items:center;
+height:100vh;
+overflow:hidden;
 }
 
-h1,h2,h3{
-    margin:20px;
+#app{
+width:90%;
+max-width:900px;
+background:rgba(255,255,255,0.08);
+backdrop-filter:blur(12px);
+padding:40px;
+border-radius:20px;
+text-align:center;
+box-shadow:0 0 40px rgba(0,0,0,0.5);
+}
+
+h1{
+font-size:42px;
+margin-bottom:10px;
 }
 
 button{
-    padding:15px 25px;
-    margin:10px;
-    border:none;
-    border-radius:12px;
-    font-size:16px;
-    cursor:pointer;
+border:none;
+padding:18px;
+border-radius:14px;
+font-size:18px;
+cursor:pointer;
+font-weight:bold;
+transition:0.25s;
 }
 
-input{
-    padding:12px;
-    margin:8px;
-    border-radius:10px;
-    border:none;
-    font-size:16px;
+button:hover{
+transform:scale(1.08);
 }
 
 .answerGrid{
-    display:grid;
-    grid-template-columns:1fr 1fr;
-    gap:15px;
-    width:80%;
-    margin:auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:15px;
+margin-top:30px;
 }
 
 .answerBtn{
-    padding:20px;
-    font-size:18px;
-    border-radius:15px;
+padding:25px;
+font-size:18px;
+border-radius:15px;
+color:white;
 }
 
-.answerBtn:nth-child(1){background:#e74c3c;}
-.answerBtn:nth-child(2){background:#3498db;}
-.answerBtn:nth-child(3){background:#f1c40f;color:black;}
-.answerBtn:nth-child(4){background:#2ecc71;}
-
-.playerBox{
-    background:white;
-    color:black;
-    margin:5px auto;
-    padding:10px;
-    width:60%;
-    border-radius:8px;
-}
+.answerBtn:nth-child(1){background:#e21b3c;}
+.answerBtn:nth-child(2){background:#1368ce;}
+.answerBtn:nth-child(3){background:#d89e00;color:black;}
+.answerBtn:nth-child(4){background:#26890c;}
 
 #timer{
-    font-size:40px;
-    margin:20px;
+font-size:45px;
+margin:15px;
+font-weight:bold;
 }
+
+.progress{
+opacity:0.8;
+}
+
+.score{
+font-size:22px;
+margin-top:10px;
+}
+
+/* Gewinner Animation */
+
+.win{
+font-size:50px;
+animation:pop 1s ease;
+}
+
+@keyframes pop{
+0%{transform:scale(0);}
+60%{transform:scale(1.3);}
+100%{transform:scale(1);}
+}
+
+/* Konfetti */
+
+.confetti{
+position:absolute;
+width:10px;
+height:10px;
+background:red;
+top:-10px;
+animation:fall 3s linear forwards;
+}
+
+@keyframes fall{
+to{
+transform:translateY(110vh) rotate(720deg);
+}
+}
+
 </style>
 </head>
+
 <body>
 
 <div id="app"></div>
 
 <script>
 
-const HOST_EMAIL = "officialxyronexx@gmail.com";
+const quiz=[
 
-let gameCode = "";
-let players = [];
-let currentQuestion = 0;
-let timer;
-let timeLeft = 15;
-
-const quiz = [
 {
-question:"Was versteht man unter Gesellschaft?",
+question:"Was versteht man unter einer Gesellschaft?",
 answers:[
-"Gemeinschaft von Menschen",
-"Maschine",
-"Unternehmen",
-"Armee"
+"Eine Gemeinschaft von Menschen",
+"Eine Maschine",
+"Ein Gebäude",
+"Eine Firma"
 ],
 correct:0
 },
+
 {
-question:"Wie lebten die meisten Menschen vor der Industrialisierung?",
+question:"Was teilen Menschen in einer Gesellschaft?",
 answers:[
-"In Großstädten",
+"Regeln, Werte und Normen",
+"Nur Geld",
+"Nur Kleidung",
+"Nur Essen"
+],
+correct:0
+},
+
+{
+question:"Warum sind Menschen in einer Gesellschaft voneinander abhängig?",
+answers:[
+"Weil sie zusammen arbeiten und leben",
+"Weil sie gleich aussehen",
+"Weil sie alleine leben",
+"Weil sie keine Regeln haben"
+],
+correct:0
+},
+
+{
+question:"Wie arbeiten Menschen in einer Gesellschaft zusammen?",
+answers:[
+"Durch Zusammenarbeit und Arbeitsteilung",
+"Gar nicht",
+"Nur durch Wettbewerb",
+"Nur alleine"
+],
+correct:0
+},
+
+{
+question:"Was hilft Konflikte zu lösen?",
+answers:[
+"Regeln und Gerichte",
+"Schreien",
+"Gar nichts",
+"Zufall"
+],
+correct:0
+},
+
+{
+question:"Welche Rolle kann jemand haben?",
+answers:[
+"Schüler oder Arbeitnehmer",
+"Nur Zuschauer",
+"Nur Chef",
+"Keine Rolle"
+],
+correct:0
+},
+
+{
+question:"Wie arbeiteten Menschen vor der Industriellen Revolution?",
+answers:[
 "In der Landwirtschaft",
+"In großen Fabriken",
 "In Büros",
 "Mit Robotern"
 ],
-correct:1
+correct:0
 },
+
 {
-question:"Warum zogen viele Menschen in Städte?",
+question:"Wie wurden Produkte früher hergestellt?",
 answers:[
-"Urlaub",
-"Fabrikarbeit",
-"Sport",
-"Abenteuer"
+"Von Hand in kleinen Werkstätten",
+"Mit Robotern",
+"In riesigen Fabriken",
+"Gar nicht"
 ],
-correct:1
-},
-{
-question:"Welche neue soziale Gruppe entstand?",
-answers:[
-"Ritter",
-"Arbeiterklasse",
-"Pharaonen",
-"Gladiatoren"
-],
-correct:1
+correct:0
 }
+
 ];
 
-function showStart(){
-document.getElementById("app").innerHTML=`
-<h1>Gesellschaft Kahoot System</h1>
-<button onclick="showHostLogin()">Host</button>
-<button onclick="showPlayerJoin()">Spieler</button>
-`;
-}
+let questionIndex=0;
+let score=0;
+let timer;
+let timeLeft=15;
 
-function showHostLogin(){
-document.getElementById("app").innerHTML=`
-<h2>Host Login</h2>
-<input id="email" placeholder="E-Mail">
-<br>
-<button onclick="hostLogin()">Einloggen</button>
-<button onclick="showStart()">Zurück</button>
-`;
-}
+const app=document.getElementById("app");
 
-function hostLogin(){
-let email=document.getElementById("email").value;
-if(email===HOST_EMAIL){
-createGame();
-}else{
-alert("Falsche Host Email!");
-}
-}
+function start(){
 
-function createGame(){
-gameCode=Math.floor(100000+Math.random()*900000);
-players=[];
-document.getElementById("app").innerHTML=`
-<h2>Spiel erstellt</h2>
-<h1>Code: ${gameCode}</h1>
-<button onclick="showPlayerJoin()">Spieler hinzufügen</button>
-<button onclick="showPlayers()">Spielerliste</button>
+app.innerHTML=`
+
+<h1>Gesellschaft Quiz</h1>
+
+<p>Teste dein Wissen</p>
+
 <button onclick="startQuiz()">Quiz starten</button>
+
 `;
-}
 
-function showPlayerJoin(){
-document.getElementById("app").innerHTML=`
-<h2>Spiel beitreten</h2>
-<input id="name" placeholder="Name">
-<input id="code" placeholder="Code">
-<br>
-<button onclick="joinGame()">Beitreten</button>
-<button onclick="showStart()">Zurück</button>
-`;
-}
-
-function joinGame(){
-let name=document.getElementById("name").value;
-let code=document.getElementById("code").value;
-
-if(code==gameCode){
-players.push({name:name,score:0});
-alert("Beigetreten!");
-}else{
-alert("Falscher Code!");
-}
-}
-
-function showPlayers(){
-let list=players.map(p=>`<div class="playerBox">${p.name}</div>`).join("");
-document.getElementById("app").innerHTML=`
-<h2>Spielerliste</h2>
-${list}
-<button onclick="createGame()">Zurück</button>
-`;
 }
 
 function startQuiz(){
-currentQuestion=0;
+
+questionIndex=0;
+score=0;
+
 nextQuestion();
+
 }
 
 function nextQuestion(){
-if(currentQuestion>=quiz.length){
-endGame();
+
+if(questionIndex>=quiz.length){
+showResult();
 return;
 }
 
-let q=quiz[currentQuestion];
+let q=quiz[questionIndex];
 timeLeft=15;
 
-document.getElementById("app").innerHTML=`
-<h2>Frage ${currentQuestion+1}</h2>
+app.innerHTML=`
+
+<div class="progress">Frage ${questionIndex+1} / ${quiz.length}</div>
+
 <div id="timer">${timeLeft}</div>
-<h3>${q.question}</h3>
+
+<h2>${q.question}</h2>
+
 <div class="answerGrid" id="answers"></div>
+
+<div class="score">Punkte: ${score}</div>
+
 `;
 
 q.answers.forEach((a,i)=>{
+
 let btn=document.createElement("button");
+
 btn.className="answerBtn";
+
 btn.innerText=a;
-btn.onclick=()=>selectAnswer(i);
+
+btn.onclick=()=>answer(i);
+
 document.getElementById("answers").appendChild(btn);
+
 });
 
 timer=setInterval(()=>{
+
 timeLeft--;
 document.getElementById("timer").innerText=timeLeft;
+
 if(timeLeft<=0){
+
 clearInterval(timer);
-showLeaderboard();
+questionIndex++;
+nextQuestion();
+
 }
+
 },1000);
+
 }
 
-function selectAnswer(index){
+function answer(i){
+
 clearInterval(timer);
-let correct=quiz[currentQuestion].correct;
 
-players.forEach(p=>{
-if(index===correct){
-p.score+=timeLeft*10;
-}
-});
+let correct=quiz[questionIndex].correct;
 
-showLeaderboard();
+if(i===correct){
+
+score+=timeLeft*10;
+
 }
 
-function showLeaderboard(){
-currentQuestion++;
+questionIndex++;
 
-players.sort((a,b)=>b.score-a.score);
+setTimeout(nextQuestion,600);
 
-let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score} Punkte</div>`).join("");
+}
 
-document.getElementById("app").innerHTML=`
-<h2>Zwischenstand</h2>
-${list}
-<button onclick="nextQuestion()">Nächste Frage</button>
+function showResult(){
+
+app.innerHTML=`
+
+<h1 class="win">🏆 Quiz beendet!</h1>
+
+<h2>Deine Punkte</h2>
+
+<h1>${score}</h1>
+
+<button onclick="start()">Nochmal spielen</button>
+
 `;
+
+confetti();
+
 }
 
-function endGame(){
-players.sort((a,b)=>b.score-a.score);
+function confetti(){
 
-let winner=players[0];
+for(let i=0;i<120;i++){
 
-let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("");
+let c=document.createElement("div");
 
-document.getElementById("app").innerHTML=`
-<h1>Spiel beendet!</h1>
-<h2>Gewinner: ${winner ? winner.name : "Niemand"}</h2>
-${list}
-<button onclick="showStart()">Neues Spiel</button>
-`;
+c.className="confetti";
+
+c.style.left=Math.random()*100+"vw";
+
+c.style.background=`hsl(${Math.random()*360},80%,60%)`;
+
+c.style.animationDuration=2+Math.random()*3+"s";
+
+document.body.appendChild(c);
+
+setTimeout(()=>c.remove(),4000);
+
 }
 
-showStart();
+}
+
+start();
 
 </script>
 
