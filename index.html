@@ -1,417 +1,340 @@
 <!DOCTYPE html>
-
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gesellschaft Super Quiz</title>
+<title>Gesellschaft Quiz</title>
 
 <style>
 
 body{
-margin:0;
-font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
+font-family:Arial;
+background:linear-gradient(135deg,#1e3c72,#2a5298);
 color:white;
-display:flex;
-justify-content:center;
-align-items:center;
-height:100vh;
+text-align:center;
 overflow:hidden;
 }
 
-#app{
-width:95%;
-max-width:950px;
-background:rgba(255,255,255,0.08);
-backdrop-filter:blur(12px);
-padding:40px;
-border-radius:20px;
-text-align:center;
-box-shadow:0 0 40px rgba(0,0,0,0.5);
-animation:fade 0.6s;
-}
-
-@keyframes fade{
-from{opacity:0;transform:translateY(30px)}
-to{opacity:1;transform:translateY(0)}
-}
-
-h1{
-font-size:40px;
-margin-bottom:10px;
+#quiz{
+margin-top:50px;
 }
 
 button{
+width:200px;
+height:80px;
+margin:10px;
+font-size:20px;
 border:none;
-padding:18px;
-border-radius:14px;
-font-size:18px;
+border-radius:15px;
 cursor:pointer;
-font-weight:bold;
-transition:0.25s;
+transition:0.3s;
 }
 
 button:hover{
 transform:scale(1.1);
 }
 
-input{
-padding:12px;
+.red{background:#ff4d4d;}
+.blue{background:#4da6ff;}
+.green{background:#33cc33;}
+.yellow{background:#ffcc00;}
+
+.correct{
+animation:correctFlash 0.5s 4;
+}
+
+.wrong{
+animation:wrongFlash 0.5s 4;
+}
+
+@keyframes correctFlash{
+0%{background:#33cc33;}
+50%{background:white;}
+100%{background:#33cc33;}
+}
+
+@keyframes wrongFlash{
+0%{background:#ff4d4d;}
+50%{background:black;}
+100%{background:#ff4d4d;}
+}
+
+#leaderboard{
+position:absolute;
+right:20px;
+top:20px;
+background:rgba(0,0,0,0.4);
+padding:20px;
 border-radius:10px;
-border:none;
-margin:5px;
 }
 
-.answerGrid{
-display:grid;
-grid-template-columns:1fr 1fr;
-gap:15px;
-margin-top:30px;
-}
-
-.answerBtn{
-height:120px;
-font-size:40px;
-border-radius:16px;
-display:flex;
-align-items:center;
-justify-content:center;
-}
-
-.answerBtn:nth-child(1){background:#e21b3c;}
-.answerBtn:nth-child(2){background:#1368ce;}
-.answerBtn:nth-child(3){background:#d89e00;color:black;}
-.answerBtn:nth-child(4){background:#26890c;}
-
-.correct{background:#2ecc71 !important;}
-.wrong{background:#e74c3c !important;}
-
-#timer{
-font-size:45px;
-margin:10px;
-}
-
-.player{
-background:rgba(255,255,255,0.1);
-margin:5px;
-padding:10px;
-border-radius:10px;
-font-size:20px;
-}
-
-.leader{
-font-size:24px;
-margin:10px;
-padding:15px;
-background:rgba(255,255,255,0.1);
-border-radius:12px;
-}
-
-.win{
-font-size:55px;
-animation:pop 1s;
+#gift{
+display:none;
+font-size:30px;
+animation:pop 1s infinite alternate;
+cursor:pointer;
 }
 
 @keyframes pop{
-0%{transform:scale(0)}
-60%{transform:scale(1.3)}
-100%{transform:scale(1)}
+from{transform:scale(1);}
+to{transform:scale(1.2);}
 }
 
-.confetti{
-position:absolute;
-width:12px;
-height:12px;
-top:-10px;
-animation:fall linear forwards;
+#card{
+display:none;
+font-size:40px;
+margin-top:30px;
+animation:fade 2s;
 }
 
-@keyframes fall{
-to{transform:translateY(110vh) rotate(720deg)}
+@keyframes fade{
+from{opacity:0;}
+to{opacity:1;}
+}
+
+canvas{
+position:fixed;
+top:0;
+left:0;
+pointer-events:none;
 }
 
 </style>
-
 </head>
 
 <body>
 
-<div id="app"></div>
+<h1>🎮 Gesellschaft Quiz</h1>
 
-<script>
+<div id="quiz">
 
-/* SOUNDS */
+<h2 id="question"></h2>
 
-const correctSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3");
-const wrongSound=new Audio("https://assets.mixkit.co/active_storage/sfx/294/294-preview.mp3");
-const winSound=new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3");
+<div>
 
-/* FRAGEN */
+<button class="red" onclick="answer(0)">🔺</button>
+<button class="blue" onclick="answer(1)">🔵</button>
 
-let quiz=[
+<br>
 
-{
-question:"Was versteht man unter einer Gesellschaft?",
-correct:0
-},
-
-{
-question:"Was teilen Menschen in einer Gesellschaft?",
-correct:0
-},
-
-{
-question:"Warum sind Menschen voneinander abhängig?",
-correct:0
-},
-
-{
-question:"Wie arbeiten Menschen zusammen?",
-correct:0
-},
-
-{
-question:"Was löst Konflikte in einer Gesellschaft?",
-correct:0
-},
-
-{
-question:"Welche Rolle kann jemand haben?",
-correct:0
-},
-
-{
-question:"Wo arbeiteten viele Menschen früher?",
-correct:0
-},
-
-{
-question:"Wie wurden Produkte früher hergestellt?",
-correct:0
-}
-
-];
-
-/* SPIELER */
-
-let players=[];
-let currentPlayer=0;
-let questionIndex=0;
-let timer;
-let timeLeft=15;
-
-const app=document.getElementById("app");
-
-function start(){
-
-app.innerHTML=`
-
-<h1>Gesellschaft Quiz</h1>
-
-<h3>Spieler hinzufügen</h3>
-
-<div id="playerList"></div>
-
-<input id="name" placeholder="Name">
-
-<button onclick="addPlayer()">Spieler hinzufügen</button>
-
-<br><br>
-
-<button onclick="startQuiz()">Quiz starten</button>
-
-`;
-
-}
-
-function addPlayer(){
-
-let name=document.getElementById("name").value;
-
-if(!name)return;
-
-players.push({name:name,score:0});
-
-renderPlayers();
-
-document.getElementById("name").value="";
-
-}
-
-function renderPlayers(){
-
-let html="";
-
-players.forEach(p=>{
-
-html+=`<div class="player">${p.name}</div>`
-
-});
-
-document.getElementById("playerList").innerHTML=html;
-
-}
-
-function startQuiz(){
-
-quiz = quiz.sort(()=>Math.random()-0.5);
-
-questionIndex=0;
-currentPlayer=0;
-
-nextTurn();
-
-}
-
-function nextTurn(){
-
-if(questionIndex>=quiz.length){
-
-showLeaderboard();
-return;
-
-}
-
-if(currentPlayer>=players.length){
-
-currentPlayer=0;
-questionIndex++;
-
-nextTurn();
-return;
-
-}
-
-let q=quiz[questionIndex];
-
-timeLeft=15;
-
-app.innerHTML=`
-
-<h2>${players[currentPlayer].name} ist dran</h2>
-
-<div id="timer">${timeLeft}</div>
-
-<h2>${q.question}</h2>
-
-<div class="answerGrid">
-
-<button class="answerBtn" onclick="answer(0,this)">🔺</button>
-<button class="answerBtn" onclick="answer(1,this)">🔷</button>
-<button class="answerBtn" onclick="answer(2,this)">⭕</button>
-<button class="answerBtn" onclick="answer(3,this)">⭐</button>
+<button class="green" onclick="answer(2)">🟩</button>
+<button class="yellow" onclick="answer(3)">🟨</button>
 
 </div>
 
-`;
+</div>
 
-timer=setInterval(()=>{
+<h2 id="points">Punkte: 0</h2>
 
-timeLeft--;
-document.getElementById("timer").innerText=timeLeft;
+<div id="gift">🎁 Geschenk öffnen</div>
+<div id="card">🧠 Du hast gut aufgepasst!</div>
 
-if(timeLeft<=0){
+<div id="leaderboard">
+<h3>🏆 Leaderboard</h3>
+<div id="board"></div>
+</div>
 
-clearInterval(timer);
+<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
+<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
 
-currentPlayer++;
-nextTurn();
+<canvas id="confetti"></canvas>
+
+<script>
+
+let players=[
+{name:"Spieler 1",score:0},
+{name:"Spieler 2",score:0},
+{name:"Spieler 3",score:0}
+]
+
+let combo=0
+let points=0
+let q=0
+
+const questions=[
+
+{
+q:"Was ist eine Gesellschaft?",
+a:["Eine Gemeinschaft von Menschen","Ein Gebäude","Ein Spiel","Eine Maschine"],
+c:0
+},
+
+{
+q:"Was teilen Menschen in einer Gesellschaft?",
+a:["Regeln und Werte","Autos","Computer","Bäume"],
+c:0
+},
+
+{
+q:"Wie arbeiten Menschen zusammen?",
+a:["Arbeitsteilung","Gar nicht","Nur allein","Mit Robotern"],
+c:0
+},
+
+{
+q:"Was hilft Menschen zu reden?",
+a:["Kommunikation","Stille","Schlafen","Träumen"],
+c:0
+},
+
+{
+q:"Welche Gruppe gibt es?",
+a:["Familie","Planeten","Autos","Steine"],
+c:0
+},
+
+{
+q:"Was machten Menschen vor der Industrialisierung?",
+a:["Landwirtschaft","Programmieren","Videos drehen","Raumfahrt"],
+c:0
+},
+
+{
+q:"Wer stellte Produkte in Werkstätten her?",
+a:["Handwerker","Astronauten","Piloten","Lehrer"],
+c:0
+}
+
+]
+
+function showQuestion(){
+document.getElementById("question").innerText=questions[q].q
+}
+
+function updateBoard(){
+
+players[0].score=points
+
+players.sort((a,b)=>b.score-a.score)
+
+let html=""
+
+players.forEach(p=>{
+html+=p.name+" : "+p.score+"<br>"
+})
+
+document.getElementById("board").innerHTML=html
 
 }
 
-},1000);
+function answer(i){
 
-}
+if(i===questions[q].c){
 
-function answer(i,btn){
+document.body.classList.add("correct")
 
-clearInterval(timer);
+document.getElementById("correctSound").play()
 
-let correct=quiz[questionIndex].correct;
+combo++
 
-let buttons=document.querySelectorAll(".answerBtn");
-
-buttons.forEach((b,index)=>{
-
-if(index===correct)b.classList.add("correct");
-
-if(index===i && i!==correct)b.classList.add("wrong");
-
-});
-
-if(i===correct){
-
-players[currentPlayer].score+=timeLeft*10;
-
-correctSound.play();
+points+=100+(combo*20)
 
 }else{
 
-wrongSound.play();
+document.body.classList.add("wrong")
+
+document.getElementById("wrongSound").play()
+
+combo=0
 
 }
+
+document.getElementById("points").innerText="Punkte: "+points
+
+updateBoard()
 
 setTimeout(()=>{
+document.body.classList.remove("correct","wrong")
+},800)
 
-currentPlayer++;
-nextTurn();
+if(points>=1000){
+document.getElementById("gift").style.display="block"
+}
 
-},1200);
+q++
+
+if(q<questions.length){
+
+setTimeout(showQuestion,800)
+
+}else{
+
+win()
 
 }
 
-function showLeaderboard(){
+}
 
-players.sort((a,b)=>b.score-a.score);
+document.getElementById("gift").onclick=function(){
 
-let html="<h1 class='win'>🏆 Gewinner</h1>";
+this.style.display="none"
 
-players.forEach((p,i)=>{
+document.getElementById("card").style.display="block"
 
-let medal="";
+confetti()
 
-if(i===0)medal="🥇";
-if(i===1)medal="🥈";
-if(i===2)medal="🥉";
+}
 
-html+=`<div class="leader">${medal} ${p.name} — ${p.score}</div>`;
+function win(){
 
-});
+document.getElementById("question").innerText="🏆 Gewinner!"
 
-html+=`<br><button onclick="start()">Neues Spiel</button>`;
-
-app.innerHTML=html;
-
-winSound.play();
-
-confetti();
+confetti()
 
 }
 
 function confetti(){
 
-for(let i=0;i<250;i++){
+let canvas=document.getElementById("confetti")
+let ctx=canvas.getContext("2d")
 
-let c=document.createElement("div");
+canvas.width=window.innerWidth
+canvas.height=window.innerHeight
 
-c.className="confetti";
+let pieces=[]
 
-c.style.left=Math.random()*100+"vw";
+for(let i=0;i<200;i++){
 
-c.style.background=`hsl(${Math.random()*360},80%,60%)`;
-
-c.style.animationDuration=2+Math.random()*3+"s";
-
-document.body.appendChild(c);
-
-setTimeout(()=>c.remove(),4000);
+pieces.push({
+x:Math.random()*canvas.width,
+y:Math.random()*canvas.height,
+r:Math.random()*6+4,
+d:Math.random()*200
+})
 
 }
 
+function draw(){
+
+ctx.clearRect(0,0,canvas.width,canvas.height)
+
+for(let i=0;i<pieces.length;i++){
+
+let p=pieces[i]
+
+ctx.beginPath()
+
+ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
+
+ctx.fillStyle="hsl("+Math.random()*360+",100%,50%)"
+
+ctx.fill()
+
+p.y+=2
+
+if(p.y>canvas.height)p.y=0
+
 }
 
-start();
+requestAnimationFrame(draw)
+
+}
+
+draw()
+
+}
+
+showQuestion()
+updateBoard()
 
 </script>
 
