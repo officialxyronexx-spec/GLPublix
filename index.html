@@ -4,14 +4,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gesellschaft Quiz</title>
+<title>Gesellschaft Super Quiz</title>
 
 <style>
 
 body{
 margin:0;
 font-family:'Segoe UI',sans-serif;
-background:linear-gradient(135deg,#141e30,#243b55);
+background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
 color:white;
 display:flex;
 justify-content:center;
@@ -21,23 +21,30 @@ overflow:hidden;
 }
 
 #app{
-width:90%;
-max-width:900px;
+width:95%;
+max-width:950px;
 background:rgba(255,255,255,0.08);
-backdrop-filter:blur(10px);
+backdrop-filter:blur(12px);
 padding:40px;
 border-radius:20px;
 text-align:center;
 box-shadow:0 0 40px rgba(0,0,0,0.5);
+animation:fade 0.6s;
+}
+
+@keyframes fade{
+from{opacity:0;transform:translateY(30px)}
+to{opacity:1;transform:translateY(0)}
 }
 
 h1{
-font-size:42px;
+font-size:40px;
+margin-bottom:10px;
 }
 
 button{
 border:none;
-padding:20px;
+padding:18px;
 border-radius:14px;
 font-size:18px;
 cursor:pointer;
@@ -46,21 +53,30 @@ transition:0.25s;
 }
 
 button:hover{
-transform:scale(1.07);
+transform:scale(1.1);
+}
+
+input{
+padding:12px;
+border-radius:10px;
+border:none;
+margin:5px;
 }
 
 .answerGrid{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:15px;
-margin-top:25px;
+margin-top:30px;
 }
 
 .answerBtn{
-padding:25px;
-font-size:18px;
-border-radius:15px;
-color:white;
+height:120px;
+font-size:40px;
+border-radius:16px;
+display:flex;
+align-items:center;
+justify-content:center;
 }
 
 .answerBtn:nth-child(1){background:#e21b3c;}
@@ -68,39 +84,33 @@ color:white;
 .answerBtn:nth-child(3){background:#d89e00;color:black;}
 .answerBtn:nth-child(4){background:#26890c;}
 
-.correct{
-background:#2ecc71 !important;
-animation:flash 0.6s;
-}
-
-.wrong{
-background:#e74c3c !important;
-animation:flash 0.6s;
-}
-
-@keyframes flash{
-0%{transform:scale(1)}
-50%{transform:scale(1.15)}
-100%{transform:scale(1)}
-}
+.correct{background:#2ecc71 !important;}
+.wrong{background:#e74c3c !important;}
 
 #timer{
-font-size:40px;
-margin:15px;
-font-weight:bold;
+font-size:45px;
+margin:10px;
 }
 
-.progress{
-opacity:0.8;
+.player{
+background:rgba(255,255,255,0.1);
+margin:5px;
+padding:10px;
+border-radius:10px;
+font-size:20px;
 }
 
-.score{
-font-size:22px;
+.leader{
+font-size:24px;
+margin:10px;
+padding:15px;
+background:rgba(255,255,255,0.1);
+border-radius:12px;
 }
 
 .win{
 font-size:55px;
-animation:pop 1s ease;
+animation:pop 1s;
 }
 
 @keyframes pop{
@@ -111,24 +121,14 @@ animation:pop 1s ease;
 
 .confetti{
 position:absolute;
-width:10px;
-height:10px;
+width:12px;
+height:12px;
 top:-10px;
 animation:fall linear forwards;
 }
 
 @keyframes fall{
-to{
-transform:translateY(110vh) rotate(720deg);
-}
-}
-
-.leader{
-font-size:22px;
-margin:15px;
-background:rgba(255,255,255,0.1);
-padding:15px;
-border-radius:10px;
+to{transform:translateY(110vh) rotate(720deg)}
 }
 
 </style>
@@ -141,112 +141,63 @@ border-radius:10px;
 
 <script>
 
-/* SOUND EFFEKTE */
+/* SOUNDS */
 
 const correctSound=new Audio("https://assets.mixkit.co/active_storage/sfx/2018/2018-preview.mp3");
 const wrongSound=new Audio("https://assets.mixkit.co/active_storage/sfx/294/294-preview.mp3");
 const winSound=new Audio("https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3");
 
-/* QUIZ FRAGEN */
+/* FRAGEN */
 
 let quiz=[
 
 {
 question:"Was versteht man unter einer Gesellschaft?",
-answers:[
-"Eine Gemeinschaft von Menschen",
-"Eine Maschine",
-"Ein Gebäude",
-"Eine Firma"
-],
 correct:0
 },
 
 {
 question:"Was teilen Menschen in einer Gesellschaft?",
-answers:[
-"Regeln, Werte und Normen",
-"Nur Geld",
-"Nur Kleidung",
-"Nur Essen"
-],
 correct:0
 },
 
 {
 question:"Warum sind Menschen voneinander abhängig?",
-answers:[
-"Weil sie zusammen arbeiten und leben",
-"Weil sie gleich aussehen",
-"Weil sie alleine leben",
-"Weil sie keine Regeln haben"
-],
 correct:0
 },
 
 {
 question:"Wie arbeiten Menschen zusammen?",
-answers:[
-"Durch Zusammenarbeit und Arbeitsteilung",
-"Gar nicht",
-"Nur durch Wettbewerb",
-"Nur alleine"
-],
 correct:0
 },
 
 {
 question:"Was löst Konflikte in einer Gesellschaft?",
-answers:[
-"Regeln und Gerichte",
-"Schreien",
-"Gar nichts",
-"Zufall"
-],
 correct:0
 },
 
 {
 question:"Welche Rolle kann jemand haben?",
-answers:[
-"Schüler oder Arbeitnehmer",
-"Nur Zuschauer",
-"Nur Chef",
-"Keine Rolle"
-],
 correct:0
 },
 
 {
 question:"Wo arbeiteten viele Menschen früher?",
-answers:[
-"In der Landwirtschaft",
-"In Büros",
-"In Fabriken",
-"Mit Robotern"
-],
 correct:0
 },
 
 {
 question:"Wie wurden Produkte früher hergestellt?",
-answers:[
-"Von Hand in Werkstätten",
-"Mit Robotern",
-"In großen Fabriken",
-"Gar nicht"
-],
 correct:0
 }
 
 ];
 
-/* MISCHT FRAGEN */
+/* SPIELER */
 
-quiz = quiz.sort(()=>Math.random()-0.5);
-
+let players=[];
+let currentPlayer=0;
 let questionIndex=0;
-let score=0;
 let timer;
 let timeLeft=15;
 
@@ -258,58 +209,102 @@ app.innerHTML=`
 
 <h1>Gesellschaft Quiz</h1>
 
-<p>Teste dein Wissen</p>
+<h3>Spieler hinzufügen</h3>
 
-<button onclick="startQuiz()">Start</button>
+<div id="playerList"></div>
+
+<input id="name" placeholder="Name">
+
+<button onclick="addPlayer()">Spieler hinzufügen</button>
+
+<br><br>
+
+<button onclick="startQuiz()">Quiz starten</button>
 
 `;
+
+}
+
+function addPlayer(){
+
+let name=document.getElementById("name").value;
+
+if(!name)return;
+
+players.push({name:name,score:0});
+
+renderPlayers();
+
+document.getElementById("name").value="";
+
+}
+
+function renderPlayers(){
+
+let html="";
+
+players.forEach(p=>{
+
+html+=`<div class="player">${p.name}</div>`
+
+});
+
+document.getElementById("playerList").innerHTML=html;
 
 }
 
 function startQuiz(){
 
-questionIndex=0;
-score=0;
 quiz = quiz.sort(()=>Math.random()-0.5);
 
-nextQuestion();
+questionIndex=0;
+currentPlayer=0;
+
+nextTurn();
 
 }
 
-function nextQuestion(){
+function nextTurn(){
 
 if(questionIndex>=quiz.length){
-showResult();
+
+showLeaderboard();
 return;
+
+}
+
+if(currentPlayer>=players.length){
+
+currentPlayer=0;
+questionIndex++;
+
+nextTurn();
+return;
+
 }
 
 let q=quiz[questionIndex];
+
 timeLeft=15;
 
 app.innerHTML=`
 
-<div class="progress">Frage ${questionIndex+1} / ${quiz.length}</div>
+<h2>${players[currentPlayer].name} ist dran</h2>
 
 <div id="timer">${timeLeft}</div>
 
 <h2>${q.question}</h2>
 
-<div class="answerGrid" id="answers"></div>
+<div class="answerGrid">
 
-<div class="score">Punkte: ${score}</div>
+<button class="answerBtn" onclick="answer(0,this)">🔺</button>
+<button class="answerBtn" onclick="answer(1,this)">🔷</button>
+<button class="answerBtn" onclick="answer(2,this)">⭕</button>
+<button class="answerBtn" onclick="answer(3,this)">⭐</button>
+
+</div>
 
 `;
-
-q.answers.forEach((a,i)=>{
-
-let btn=document.createElement("button");
-btn.className="answerBtn";
-btn.innerText=a;
-btn.onclick=()=>answer(i,btn);
-
-document.getElementById("answers").appendChild(btn);
-
-});
 
 timer=setInterval(()=>{
 
@@ -319,8 +314,9 @@ document.getElementById("timer").innerText=timeLeft;
 if(timeLeft<=0){
 
 clearInterval(timer);
-questionIndex++;
-nextQuestion();
+
+currentPlayer++;
+nextTurn();
 
 }
 
@@ -338,19 +334,16 @@ let buttons=document.querySelectorAll(".answerBtn");
 
 buttons.forEach((b,index)=>{
 
-if(index===correct){
-b.classList.add("correct");
-}
+if(index===correct)b.classList.add("correct");
 
-if(index===i && i!==correct){
-b.classList.add("wrong");
-}
+if(index===i && i!==correct)b.classList.add("wrong");
 
 });
 
 if(i===correct){
 
-score+=timeLeft*10;
+players[currentPlayer].score+=timeLeft*10;
+
 correctSound.play();
 
 }else{
@@ -361,28 +354,36 @@ wrongSound.play();
 
 setTimeout(()=>{
 
-questionIndex++;
-nextQuestion();
+currentPlayer++;
+nextTurn();
 
 },1200);
 
 }
 
-function showResult(){
+function showLeaderboard(){
+
+players.sort((a,b)=>b.score-a.score);
+
+let html="<h1 class='win'>🏆 Gewinner</h1>";
+
+players.forEach((p,i)=>{
+
+let medal="";
+
+if(i===0)medal="🥇";
+if(i===1)medal="🥈";
+if(i===2)medal="🥉";
+
+html+=`<div class="leader">${medal} ${p.name} — ${p.score}</div>`;
+
+});
+
+html+=`<br><button onclick="start()">Neues Spiel</button>`;
+
+app.innerHTML=html;
 
 winSound.play();
-
-app.innerHTML=`
-
-<h1 class="win">🏆 Quiz beendet!</h1>
-
-<div class="leader">⭐ Dein Score: ${score}</div>
-
-<div class="leader">🥇 Platz 1</div>
-
-<button onclick="start()">Nochmal spielen</button>
-
-`;
 
 confetti();
 
@@ -390,7 +391,7 @@ confetti();
 
 function confetti(){
 
-for(let i=0;i<120;i++){
+for(let i=0;i<250;i++){
 
 let c=document.createElement("div");
 
