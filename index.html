@@ -2,41 +2,71 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Gesellschaft Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gesellschaft Quiz Ultra</title>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
-background:linear-gradient(135deg,#1e3c72,#2a5298);
+background:linear-gradient(135deg,#141e30,#243b55);
 color:white;
 text-align:center;
-overflow:hidden;
 }
 
-#quiz{
-margin-top:50px;
+h1,h2,h3{
+margin:20px;
 }
 
 button{
-width:200px;
-height:80px;
-margin:10px;
-font-size:20px;
 border:none;
-border-radius:15px;
 cursor:pointer;
-transition:0.3s;
+font-size:22px;
+margin:10px;
 }
 
-button:hover{
-transform:scale(1.1);
+/* 3D Kahoot Buttons */
+
+.answerBtn{
+height:120px;
+border-radius:20px;
+font-size:40px;
+box-shadow:0 8px rgba(0,0,0,0.4);
+transition:0.1s;
 }
 
-.red{background:#ff4d4d;}
-.blue{background:#4da6ff;}
-.green{background:#33cc33;}
-.yellow{background:#ffcc00;}
+.answerBtn:active{
+transform:translateY(6px);
+box-shadow:0 2px rgba(0,0,0,0.4);
+}
+
+#answers{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:20px;
+width:80%;
+margin:auto;
+}
+
+.red{background:#e74c3c;}
+.blue{background:#3498db;}
+.yellow{background:#f1c40f;color:black;}
+.green{background:#2ecc71;}
+
+.playerBox{
+background:white;
+color:black;
+margin:6px auto;
+padding:10px;
+width:60%;
+border-radius:12px;
+font-size:18px;
+}
+
+#timer{
+font-size:50px;
+}
 
 .correct{
 animation:correctFlash 0.5s 4;
@@ -47,296 +77,400 @@ animation:wrongFlash 0.5s 4;
 }
 
 @keyframes correctFlash{
-0%{background:#33cc33;}
-50%{background:white;}
-100%{background:#33cc33;}
+0%{background:#2ecc71}
+50%{background:white}
+100%{background:#2ecc71}
 }
 
 @keyframes wrongFlash{
-0%{background:#ff4d4d;}
-50%{background:black;}
-100%{background:#ff4d4d;}
+0%{background:#e74c3c}
+50%{background:white}
+100%{background:#e74c3c}
 }
 
-#leaderboard{
-position:absolute;
-right:20px;
-top:20px;
-background:rgba(0,0,0,0.4);
-padding:20px;
-border-radius:10px;
+/* Punkte Animation */
+
+#pointsAnim{
+font-size:40px;
+color:#f1c40f;
+animation:points 1s forwards;
 }
+
+@keyframes points{
+0%{transform:scale(0.5);opacity:0}
+100%{transform:scale(1.4);opacity:1}
+}
+
+/* Geschenk */
 
 #gift{
-display:none;
-font-size:30px;
-animation:pop 1s infinite alternate;
+font-size:120px;
 cursor:pointer;
 }
 
-@keyframes pop{
-from{transform:scale(1);}
-to{transform:scale(1.2);}
-}
-
-#card{
-display:none;
-font-size:40px;
-margin-top:30px;
-animation:fade 2s;
-}
-
-@keyframes fade{
-from{opacity:0;}
-to{opacity:1;}
-}
-
-canvas{
-position:fixed;
-top:0;
-left:0;
-pointer-events:none;
+.card{
+background:white;
+color:black;
+padding:40px;
+border-radius:20px;
+width:60%;
+margin:auto;
+font-size:25px;
 }
 
 </style>
 </head>
-
 <body>
 
-<h1>🎮 Gesellschaft Quiz</h1>
+<div id="app"></div>
 
-<div id="quiz">
+<audio id="correctSound" src="https://assets.mixkit.co/sfx/preview/mixkit-game-success-alert-2039.mp3"></audio>
+<audio id="wrongSound" src="https://assets.mixkit.co/sfx/preview/mixkit-wrong-answer-fail-notification-946.mp3"></audio>
+<audio id="music" src="https://assets.mixkit.co/music/preview/mixkit-game-level-music-689.mp3" loop></audio>
 
-<h2 id="question"></h2>
-
-<div>
-
-<button class="red" onclick="answer(0)">🔺</button>
-<button class="blue" onclick="answer(1)">🔵</button>
-
-<br>
-
-<button class="green" onclick="answer(2)">🟩</button>
-<button class="yellow" onclick="answer(3)">🟨</button>
-
-</div>
-
-</div>
-
-<h2 id="points">Punkte: 0</h2>
-
-<div id="gift">🎁 Geschenk öffnen</div>
-<div id="card">🧠 Du hast gut aufgepasst!</div>
-
-<div id="leaderboard">
-<h3>🏆 Leaderboard</h3>
-<div id="board"></div>
-</div>
-
-<audio id="correctSound" src="https://www.soundjay.com/buttons/sounds/button-4.mp3"></audio>
-<audio id="wrongSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
-
-<canvas id="confetti"></canvas>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <script>
 
-let players=[
-{name:"Spieler 1",score:0},
-{name:"Spieler 2",score:0},
-{name:"Spieler 3",score:0}
-]
+let players=[]
+let currentQuestion=0
+let timeLeft=15
+let timer
+let level=1
 
-let combo=0
-let points=0
-let q=0
-
-const questions=[
+const quiz=[
 
 {
-q:"Was ist eine Gesellschaft?",
-a:["Eine Gemeinschaft von Menschen","Ein Gebäude","Ein Spiel","Eine Maschine"],
-c:0
+question:"Was versteht man unter Gesellschaft?",
+answers:[
+"Gemeinschaft von Menschen",
+"Maschine",
+"Computer",
+"Armee"
+],
+correct:0
 },
 
 {
-q:"Was teilen Menschen in einer Gesellschaft?",
-a:["Regeln und Werte","Autos","Computer","Bäume"],
-c:0
+question:"Was teilen Menschen in einer Gesellschaft?",
+answers:[
+"Regeln und Werte",
+"Autos",
+"Roboter",
+"Raketen"
+],
+correct:0
 },
 
 {
-q:"Wie arbeiten Menschen zusammen?",
-a:["Arbeitsteilung","Gar nicht","Nur allein","Mit Robotern"],
-c:0
+question:"Warum sind Menschen voneinander abhängig?",
+answers:[
+"Arbeit und Familie",
+"Gaming",
+"Sport",
+"Fernsehen"
+],
+correct:0
 },
 
 {
-q:"Was hilft Menschen zu reden?",
-a:["Kommunikation","Stille","Schlafen","Träumen"],
-c:0
+question:"Wie leben Menschen zusammen?",
+answers:[
+"Zusammenarbeit",
+"Alleine",
+"Ohne Regeln",
+"Ohne Kommunikation"
+],
+correct:0
 },
 
 {
-q:"Welche Gruppe gibt es?",
-a:["Familie","Planeten","Autos","Steine"],
-c:0
+question:"Welche Gruppe gibt es?",
+answers:[
+"Familien",
+"Aliens",
+"Roboter",
+"Dinosaurier"
+],
+correct:0
 },
 
 {
-q:"Was machten Menschen vor der Industrialisierung?",
-a:["Landwirtschaft","Programmieren","Videos drehen","Raumfahrt"],
-c:0
+question:"Was bestimmten oft die Stellung in der Gesellschaft?",
+answers:[
+"Beruf",
+"Auto",
+"Handy",
+"Spiel"
+],
+correct:0
 },
 
 {
-q:"Wer stellte Produkte in Werkstätten her?",
-a:["Handwerker","Astronauten","Piloten","Lehrer"],
-c:0
+question:"Wie arbeiteten Menschen vor der Industrialisierung?",
+answers:[
+"Landwirtschaft",
+"Computer",
+"Internet",
+"Büro"
+],
+correct:0
+},
+
+{
+question:"Wo lebten viele Menschen?",
+answers:[
+"Auf dem Land",
+"Im Weltall",
+"Unter Wasser",
+"Auf dem Mond"
+],
+correct:0
 }
 
 ]
 
-function showQuestion(){
-document.getElementById("question").innerText=questions[q].q
+quiz.sort(()=>Math.random()-0.5)
+
+function showStart(){
+
+document.getElementById("music").play()
+
+document.getElementById("app").innerHTML=`
+
+<h1>Gesellschaft Quiz</h1>
+
+<button onclick="showJoin()">Spieler hinzufügen</button>
+<button onclick="showPlayers()">Spielerliste</button>
+<button onclick="startQuiz()">Quiz starten</button>
+
+`
+
 }
 
-function updateBoard(){
+function showJoin(){
 
-players[0].score=points
+document.getElementById("app").innerHTML=`
+
+<h2>Spieler hinzufügen</h2>
+
+<input id="name" placeholder="Name">
+
+<br>
+
+<button onclick="join()">Beitreten</button>
+<button onclick="showStart()">Zurück</button>
+
+`
+
+}
+
+function join(){
+
+let name=document.getElementById("name").value
+
+if(name==="")return
+
+players.push({name:name,score:0})
+
+alert(name+" ist beigetreten!")
+
+}
+
+function showPlayers(){
+
+let list=players.map(p=>`<div class="playerBox">${p.name}</div>`).join("")
+
+document.getElementById("app").innerHTML=`
+
+<h2>Spielerliste</h2>
+
+${list}
+
+<button onclick="showStart()">Zurück</button>
+
+`
+
+}
+
+function startQuiz(){
+
+if(players.length===0){
+alert("Keine Spieler!")
+return
+}
+
+currentQuestion=0
+nextQuestion()
+
+}
+
+function nextQuestion(){
+
+if(currentQuestion>=quiz.length){
+endGame()
+return
+}
+
+timeLeft=15
+
+let q=quiz[currentQuestion]
+
+document.getElementById("app").innerHTML=`
+
+<h2>Level ${level}</h2>
+
+<div id="timer">${timeLeft}</div>
+
+<h3>${q.question}</h3>
+
+<div id="answers">
+
+<button class="answerBtn red" onclick="answer(0)">▲</button>
+<button class="answerBtn blue" onclick="answer(1)">◆</button>
+<button class="answerBtn yellow" onclick="answer(2)">●</button>
+<button class="answerBtn green" onclick="answer(3)">■</button>
+
+</div>
+
+`
+
+timer=setInterval(()=>{
+
+timeLeft--
+
+document.getElementById("timer").innerText=timeLeft
+
+if(timeLeft<=0){
+
+clearInterval(timer)
+showLeaderboard()
+
+}
+
+},1000)
+
+}
+
+function answer(index){
+
+clearInterval(timer)
+
+let correct=quiz[currentQuestion].correct
+
+let buttons=document.querySelectorAll(".answerBtn")
+
+players.forEach(p=>{
+
+if(index===correct){
+
+let points=timeLeft*100
+
+p.score+=points
+
+document.getElementById("app").innerHTML+=`<div id="pointsAnim">+${points}</div>`
+
+}
+
+})
+
+if(index===correct){
+
+document.getElementById("correctSound").play()
+buttons[index].classList.add("correct")
+
+}else{
+
+document.getElementById("wrongSound").play()
+buttons[index].classList.add("wrong")
+
+}
+
+setTimeout(showLeaderboard,1200)
+
+}
+
+function showLeaderboard(){
+
+currentQuestion++
 
 players.sort((a,b)=>b.score-a.score)
 
-let html=""
+let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("")
 
-players.forEach(p=>{
-html+=p.name+" : "+p.score+"<br>"
+document.getElementById("app").innerHTML=`
+
+<h2>Leaderboard</h2>
+
+${list}
+
+<button onclick="nextLevel()">Weiter</button>
+
+`
+
+}
+
+function nextLevel(){
+
+level++
+
+nextQuestion()
+
+}
+
+function endGame(){
+
+players.sort((a,b)=>b.score-a.score)
+
+let winner=players[0]
+
+confetti({
+particleCount:500,
+spread:200
 })
 
-document.getElementById("board").innerHTML=html
+let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("")
+
+document.getElementById("app").innerHTML=`
+
+<h1>🏆 Gewinner: ${winner.name}</h1>
+
+${list}
+
+<h2>🎁 Geschenk freigeschaltet</h2>
+
+<div id="gift" onclick="openGift()">🎁</div>
+
+`
 
 }
 
-function answer(i){
+function openGift(){
 
-if(i===questions[q].c){
+let cards=[
+"Du hast gut aufgepasst! 🧠",
+"Super gemacht! ⭐",
+"Gesellschaft verstanden! 🎓"
+]
 
-document.body.classList.add("correct")
+let card=cards[Math.floor(Math.random()*cards.length)]
 
-document.getElementById("correctSound").play()
+document.getElementById("app").innerHTML=`
 
-combo++
+<div class="card">
 
-points+=100+(combo*20)
+${card}
 
-}else{
+</div>
 
-document.body.classList.add("wrong")
+<button onclick="showStart()">Neues Spiel</button>
 
-document.getElementById("wrongSound").play()
-
-combo=0
-
-}
-
-document.getElementById("points").innerText="Punkte: "+points
-
-updateBoard()
-
-setTimeout(()=>{
-document.body.classList.remove("correct","wrong")
-},800)
-
-if(points>=1000){
-document.getElementById("gift").style.display="block"
-}
-
-q++
-
-if(q<questions.length){
-
-setTimeout(showQuestion,800)
-
-}else{
-
-win()
+`
 
 }
 
-}
-
-document.getElementById("gift").onclick=function(){
-
-this.style.display="none"
-
-document.getElementById("card").style.display="block"
-
-confetti()
-
-}
-
-function win(){
-
-document.getElementById("question").innerText="🏆 Gewinner!"
-
-confetti()
-
-}
-
-function confetti(){
-
-let canvas=document.getElementById("confetti")
-let ctx=canvas.getContext("2d")
-
-canvas.width=window.innerWidth
-canvas.height=window.innerHeight
-
-let pieces=[]
-
-for(let i=0;i<200;i++){
-
-pieces.push({
-x:Math.random()*canvas.width,
-y:Math.random()*canvas.height,
-r:Math.random()*6+4,
-d:Math.random()*200
-})
-
-}
-
-function draw(){
-
-ctx.clearRect(0,0,canvas.width,canvas.height)
-
-for(let i=0;i<pieces.length;i++){
-
-let p=pieces[i]
-
-ctx.beginPath()
-
-ctx.arc(p.x,p.y,p.r,0,Math.PI*2)
-
-ctx.fillStyle="hsl("+Math.random()*360+",100%,50%)"
-
-ctx.fill()
-
-p.y+=2
-
-if(p.y>canvas.height)p.y=0
-
-}
-
-requestAnimationFrame(draw)
-
-}
-
-draw()
-
-}
-
-showQuestion()
-updateBoard()
+showStart()
 
 </script>
-
 </body>
 </html>
