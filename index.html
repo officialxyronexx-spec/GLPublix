@@ -22,18 +22,23 @@ margin:20px;
 button{
 border:none;
 cursor:pointer;
-font-size:22px;
+font-size:18px;
 margin:10px;
 }
 
-/* 3D Kahoot Buttons */
+/* 3D Buttons */
 
 .answerBtn{
 height:120px;
 border-radius:20px;
-font-size:40px;
+padding:10px;
 box-shadow:0 8px rgba(0,0,0,0.4);
 transition:0.1s;
+font-size:18px;
+display:flex;
+align-items:center;
+justify-content:center;
+text-align:center;
 }
 
 .answerBtn:active{
@@ -45,7 +50,7 @@ box-shadow:0 2px rgba(0,0,0,0.4);
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:20px;
-width:80%;
+width:85%;
 margin:auto;
 }
 
@@ -61,7 +66,6 @@ margin:6px auto;
 padding:10px;
 width:60%;
 border-radius:12px;
-font-size:18px;
 }
 
 #timer{
@@ -100,8 +104,6 @@ animation:points 1s forwards;
 0%{transform:scale(0.5);opacity:0}
 100%{transform:scale(1.4);opacity:1}
 }
-
-/* Geschenk */
 
 #gift{
 font-size:120px;
@@ -196,7 +198,7 @@ correct:0
 },
 
 {
-question:"Was bestimmten oft die Stellung in der Gesellschaft?",
+question:"Was bestimmt oft die Stellung in der Gesellschaft?",
 answers:[
 "Beruf",
 "Auto",
@@ -218,7 +220,7 @@ correct:0
 },
 
 {
-question:"Wo lebten viele Menschen?",
+question:"Wo lebten viele Menschen früher?",
 answers:[
 "Auf dem Land",
 "Im Weltall",
@@ -326,10 +328,10 @@ document.getElementById("app").innerHTML=`
 
 <div id="answers">
 
-<button class="answerBtn red" onclick="answer(0)">▲</button>
-<button class="answerBtn blue" onclick="answer(1)">◆</button>
-<button class="answerBtn yellow" onclick="answer(2)">●</button>
-<button class="answerBtn green" onclick="answer(3)">■</button>
+<button class="answerBtn red" onclick="answer(0)">▲ ${q.answers[0]}</button>
+<button class="answerBtn blue" onclick="answer(1)">◆ ${q.answers[1]}</button>
+<button class="answerBtn yellow" onclick="answer(2)">● ${q.answers[2]}</button>
+<button class="answerBtn green" onclick="answer(3)">■ ${q.answers[3]}</button>
 
 </div>
 
@@ -365,7 +367,6 @@ players.forEach(p=>{
 if(index===correct){
 
 let points=timeLeft*100
-
 p.score+=points
 
 document.getElementById("app").innerHTML+=`<div id="pointsAnim">+${points}</div>`
@@ -472,5 +473,6 @@ ${card}
 showStart()
 
 </script>
+
 </body>
 </html>
