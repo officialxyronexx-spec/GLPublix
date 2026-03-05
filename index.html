@@ -92,6 +92,7 @@ margin-top:10px;
 display:none;
 margin-top:30px;
 font-size:30px;
+cursor:pointer;
 animation:giftAnim 1s infinite alternate;
 }
 
@@ -135,10 +136,10 @@ pointer-events:none;
 <div id="question"></div>
 
 <div class="answers">
-<button class="answer red" id="a0"></button>
-<button class="answer blue" id="a1"></button>
-<button class="answer yellow" id="a2"></button>
-<button class="answer green" id="a3"></button>
+<button class="answer red"></button>
+<button class="answer blue"></button>
+<button class="answer yellow"></button>
+<button class="answer green"></button>
 </div>
 
 <div id="score">Punkte: 0</div>
@@ -162,76 +163,40 @@ let level=1
 let current=0
 
 const quiz=[
-{
-q:"Was versteht man unter einer Gesellschaft?",
-a:["Eine Gemeinschaft von Menschen","Eine Maschine","Ein Gebäude","Eine Armee"],
-c:0
-},
-{
-q:"Was teilen Menschen in einer Gesellschaft?",
-a:["Regeln und Werte","Nur Kleidung","Nur Essen","Nur Geld"],
-c:0
-},
-{
-q:"Warum sind Menschen voneinander abhängig?",
-a:["Wegen Arbeit und Familie","Wegen Wetter","Wegen Autos","Wegen Spiele"],
-c:0
-},
-{
-q:"Wie leben Menschen zusammen?",
-a:["Durch Zusammenarbeit","Gar nicht","Durch Zufall","Durch Glück"],
-c:0
-},
-{
-q:"Was gibt es in einer Gesellschaft?",
-a:["Regeln und Gesetze","Keine Regeln","Nur Chaos","Nur Spiele"],
-c:0
-},
-{
-q:"Warum ist Kommunikation wichtig?",
-a:["Damit Menschen sich verstehen","Damit man schreit","Damit man gewinnt","Damit man rennt"],
-c:0
-},
-{
-q:"Was haben Menschen in einer Gesellschaft?",
-a:["Rechte und Pflichten","Nur Rechte","Nur Pflichten","Gar nichts"],
-c:0
-},
-{
-q:"Wie werden Konflikte gelöst?",
-a:["Durch Regeln oder Gerichte","Durch Kämpfen","Durch Rennen","Durch Ignorieren"],
-c:0
-},
-{
-q:"Welche Rollen können Menschen haben?",
-a:["Schüler, Arbeitnehmer, Eltern","Nur Schüler","Nur Lehrer","Keine Rollen"],
-c:0
-},
-{
-q:"Wie arbeiteten Menschen vor der Industrialisierung?",
-a:["In der Landwirtschaft","In Büros","Mit Robotern","Mit Computern"],
-c:0
-},
-{
-q:"Wo lebten viele Menschen früher?",
-a:["Auf dem Land","Im Weltraum","Im Meer","In Flugzeugen"],
-c:0
-},
-{
-q:"Wie wurden Produkte früher hergestellt?",
-a:["Von Hand","Mit Robotern","Mit Computern","Mit Lasern"],
-c:0
-}
+{q:"Was versteht man unter einer Gesellschaft?",a:["Eine Gemeinschaft von Menschen","Eine Maschine","Ein Gebäude","Eine Armee"],c:0},
+{q:"Was teilen Menschen in einer Gesellschaft?",a:["Regeln und Werte","Nur Kleidung","Nur Essen","Nur Geld"],c:0},
+{q:"Warum sind Menschen voneinander abhängig?",a:["Wegen Arbeit und Familie","Wegen Wetter","Wegen Autos","Wegen Spiele"],c:0},
+{q:"Wie leben Menschen zusammen?",a:["Durch Zusammenarbeit","Gar nicht","Durch Zufall","Durch Glück"],c:0},
+{q:"Was gibt es in einer Gesellschaft?",a:["Regeln und Gesetze","Keine Regeln","Nur Chaos","Nur Spiele"],c:0},
+{q:"Warum ist Kommunikation wichtig?",a:["Damit Menschen sich verstehen","Damit man schreit","Damit man gewinnt","Damit man rennt"],c:0},
+{q:"Was haben Menschen in einer Gesellschaft?",a:["Rechte und Pflichten","Nur Rechte","Nur Pflichten","Gar nichts"],c:0},
+{q:"Wie werden Konflikte gelöst?",a:["Durch Regeln oder Gerichte","Durch Kämpfen","Durch Rennen","Durch Ignorieren"],c:0},
+{q:"Welche Rollen können Menschen haben?",a:["Schüler, Arbeitnehmer, Eltern","Nur Schüler","Nur Lehrer","Keine Rollen"],c:0},
+{q:"Wie arbeiteten Menschen vor der Industrialisierung?",a:["In der Landwirtschaft","In Büros","Mit Robotern","Mit Computern"],c:0},
+{q:"Wo lebten viele Menschen früher?",a:["Auf dem Land","Im Weltraum","Im Meer","In Flugzeugen"],c:0},
+{q:"Wie wurden Produkte früher hergestellt?",a:["Von Hand","Mit Robotern","Mit Computern","Mit Lasern"],c:0}
 ]
 
 quiz.sort(()=>Math.random()-0.5)
 
-const buttons=[
-document.getElementById("a0"),
-document.getElementById("a1"),
-document.getElementById("a2"),
-document.getElementById("a3")
-]
+const buttons=document.querySelectorAll(".answer")
+
+function shuffleAnswers(question){
+
+let answers=question.a.map((text,i)=>({
+text:text,
+correct:i===question.c
+}))
+
+answers.sort(()=>Math.random()-0.5)
+
+return{
+q:question.q,
+a:answers.map(a=>a.text),
+c:answers.findIndex(a=>a.correct)
+}
+
+}
 
 function loadQuestion(){
 
@@ -240,25 +205,22 @@ win()
 return
 }
 
-const q=quiz[current]
+let q=shuffleAnswers(quiz[current])
 
 document.getElementById("question").innerText=q.q
 
 buttons.forEach((b,i)=>{
 b.innerText=q.a[i]
-b.onclick=()=>answer(i)
+b.onclick=()=>answer(i,q.c)
 })
 
 }
 
-function answer(i){
+function answer(i,correct){
 
-const q=quiz[current]
-
-if(i===q.c){
+if(i===correct){
 
 buttons[i].classList.add("correct")
-
 score+=100
 
 }else{
@@ -294,9 +256,7 @@ loadQuestion()
 }
 
 function openGift(){
-
 document.getElementById("giftCard").style.display="block"
-
 }
 
 function win(){
