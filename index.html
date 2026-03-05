@@ -2,126 +2,118 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<title>Super Quiz</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gesellschaft Quiz</title>
 
 <style>
 
 body{
+margin:0;
 font-family:Arial;
 background:linear-gradient(135deg,#4facfe,#00f2fe);
-margin:0;
 color:white;
 text-align:center;
 overflow-x:hidden;
 }
 
-#game{
-margin-top:40px;
-padding:20px;
+h1{
+margin-top:20px;
 }
 
-h1{
-font-size:40px;
+#quiz{
+max-width:900px;
+margin:auto;
+padding:20px;
 }
 
 #question{
 font-size:28px;
-margin:30px;
+margin:40px 0;
 }
 
 .answers{
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:20px;
-max-width:600px;
-margin:auto;
 }
 
-.btn{
-padding:30px;
-font-size:28px;
+.answer{
+padding:25px;
+font-size:20px;
 border:none;
-border-radius:20px;
-color:white;
+border-radius:15px;
 cursor:pointer;
-transform:scale(1);
-transition:all .2s;
-box-shadow:0 10px 0 rgba(0,0,0,0.2);
+color:white;
+transition:0.2s;
+box-shadow:0 8px 0 rgba(0,0,0,0.3);
 }
 
-.btn:hover{
-transform:scale(1.05);
+.answer:active{
+transform:translateY(4px);
+box-shadow:0 4px 0 rgba(0,0,0,0.3);
 }
 
-.red{background:#e21b3c;}
-.blue{background:#1368ce;}
-.yellow{background:#d89e00;}
-.green{background:#26890c;}
+.red{background:#e74c3c;}
+.blue{background:#3498db;}
+.yellow{background:#f1c40f;color:black;}
+.green{background:#2ecc71;}
 
 .correct{
-animation:correctFlash .5s 3;
+animation:correctFlash 0.5s 4;
 }
 
 .wrong{
-animation:wrongFlash .5s 3;
+animation:wrongFlash 0.5s 4;
 }
 
 @keyframes correctFlash{
-0%{background:#00ff9d;}
-50%{background:#fff;}
-100%{background:#00ff9d;}
+0%{background:#2ecc71;}
+50%{background:white;color:black;}
+100%{background:#2ecc71;}
 }
 
 @keyframes wrongFlash{
-0%{background:#ff0044;}
-50%{background:#fff;}
-100%{background:#ff0044;}
+0%{background:#e74c3c;}
+50%{background:black;}
+100%{background:#e74c3c;}
 }
 
 #score{
 font-size:24px;
-margin:20px;
+margin-top:20px;
 }
 
 #level{
-font-size:20px;
+font-size:18px;
+margin-top:10px;
 }
 
 #gift{
 display:none;
-font-size:80px;
-cursor:pointer;
-animation:float 2s infinite ease-in-out;
+margin-top:30px;
+font-size:30px;
+animation:giftAnim 1s infinite alternate;
 }
 
-@keyframes float{
-0%{transform:translateY(0)}
-50%{transform:translateY(-15px)}
-100%{transform:translateY(0)}
+@keyframes giftAnim{
+from{transform:scale(1)}
+to{transform:scale(1.2)}
 }
 
-#card{
+#giftCard{
 display:none;
-position:fixed;
-top:50%;
-left:50%;
-transform:translate(-50%,-50%) scale(0);
+margin-top:20px;
 background:white;
 color:black;
-padding:40px;
-border-radius:20px;
-font-size:30px;
-animation:cardOpen .6s forwards;
+padding:30px;
+border-radius:15px;
+font-size:24px;
+animation:cardPop 0.6s;
 }
 
-@keyframes cardOpen{
-to{transform:translate(-50%,-50%) scale(1);}
-}
-
-#win{
-display:none;
-font-size:50px;
-margin-top:100px;
+@keyframes cardPop{
+from{transform:scale(0)}
+to{transform:scale(1)}
 }
 
 canvas{
@@ -136,157 +128,181 @@ pointer-events:none;
 
 <body>
 
-<h1>🎮 Super Quiz</h1>
+<h1>Gesellschaft Quiz</h1>
 
-<div id="score">Punkte: 0</div>
-<div id="level">Level 1</div>
-
-<div id="game">
+<div id="quiz">
 
 <div id="question"></div>
 
 <div class="answers">
-<button class="btn red" onclick="answer(0)">▲</button>
-<button class="btn blue" onclick="answer(1)">■</button>
-<button class="btn yellow" onclick="answer(2)">◆</button>
-<button class="btn green" onclick="answer(3)">●</button>
+<button class="answer red" id="a0"></button>
+<button class="answer blue" id="a1"></button>
+<button class="answer yellow" id="a2"></button>
+<button class="answer green" id="a3"></button>
 </div>
 
+<div id="score">Punkte: 0</div>
+<div id="level">Level: 1</div>
+
+<div id="gift">🎁 Geschenk öffnen!</div>
+<div id="giftCard">🧠 Du hast gut aufgepasst!</div>
+
 </div>
-
-<div id="gift" onclick="openGift()">🎁</div>
-
-<div id="card">🎉 Du hast gut aufgepasst!</div>
-
-<div id="win">🏆 GEWONNEN 🏆</div>
 
 <audio id="music" loop>
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_8c2c3c9b6b.mp3">
-</audio>
-
-<audio id="correctSound">
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_6c55f7c4fd.mp3">
-</audio>
-
-<audio id="wrongSound">
-<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_eb7c5b8c63.mp3">
+<source src="https://cdn.pixabay.com/audio/2022/03/15/audio_4c51c6b7d3.mp3">
 </audio>
 
 <canvas id="confetti"></canvas>
 
 <script>
 
-document.body.onclick=()=>music.play()
-
-const questions=[
-
-{q:"Wie viele Kontinente gibt es?",a:["5","6","7","8"],c:2},
-
-{q:"Hauptstadt von Deutschland?",a:["Berlin","Paris","Rom","Madrid"],c:0},
-
-{q:"2 + 2 ?",a:["3","4","5","6"],c:1},
-
-{q:"Größter Ozean?",a:["Atlantik","Indischer","Pazifik","Arktischer"],c:2},
-
-{q:"Welcher Planet ist rot?",a:["Mars","Venus","Erde","Saturn"],c:0},
-
-{q:"Schnellstes Landtier?",a:["Löwe","Tiger","Gepard","Wolf"],c:2}
-
-]
-
-questions.sort(()=>Math.random()-0.5)
-
-let current=0
 let score=0
 let level=1
+let current=0
 
-function load(){
+const quiz=[
+{
+q:"Was versteht man unter einer Gesellschaft?",
+a:["Eine Gemeinschaft von Menschen","Eine Maschine","Ein Gebäude","Eine Armee"],
+c:0
+},
+{
+q:"Was teilen Menschen in einer Gesellschaft?",
+a:["Regeln und Werte","Nur Kleidung","Nur Essen","Nur Geld"],
+c:0
+},
+{
+q:"Warum sind Menschen voneinander abhängig?",
+a:["Wegen Arbeit und Familie","Wegen Wetter","Wegen Autos","Wegen Spiele"],
+c:0
+},
+{
+q:"Wie leben Menschen zusammen?",
+a:["Durch Zusammenarbeit","Gar nicht","Durch Zufall","Durch Glück"],
+c:0
+},
+{
+q:"Was gibt es in einer Gesellschaft?",
+a:["Regeln und Gesetze","Keine Regeln","Nur Chaos","Nur Spiele"],
+c:0
+},
+{
+q:"Warum ist Kommunikation wichtig?",
+a:["Damit Menschen sich verstehen","Damit man schreit","Damit man gewinnt","Damit man rennt"],
+c:0
+},
+{
+q:"Was haben Menschen in einer Gesellschaft?",
+a:["Rechte und Pflichten","Nur Rechte","Nur Pflichten","Gar nichts"],
+c:0
+},
+{
+q:"Wie werden Konflikte gelöst?",
+a:["Durch Regeln oder Gerichte","Durch Kämpfen","Durch Rennen","Durch Ignorieren"],
+c:0
+},
+{
+q:"Welche Rollen können Menschen haben?",
+a:["Schüler, Arbeitnehmer, Eltern","Nur Schüler","Nur Lehrer","Keine Rollen"],
+c:0
+},
+{
+q:"Wie arbeiteten Menschen vor der Industrialisierung?",
+a:["In der Landwirtschaft","In Büros","Mit Robotern","Mit Computern"],
+c:0
+},
+{
+q:"Wo lebten viele Menschen früher?",
+a:["Auf dem Land","Im Weltraum","Im Meer","In Flugzeugen"],
+c:0
+},
+{
+q:"Wie wurden Produkte früher hergestellt?",
+a:["Von Hand","Mit Robotern","Mit Computern","Mit Lasern"],
+c:0
+}
+]
 
-let q=questions[current]
+quiz.sort(()=>Math.random()-0.5)
 
-question.innerText=q.q
+const buttons=[
+document.getElementById("a0"),
+document.getElementById("a1"),
+document.getElementById("a2"),
+document.getElementById("a3")
+]
 
-let buttons=document.querySelectorAll(".btn")
+function loadQuestion(){
+
+if(current>=quiz.length){
+win()
+return
+}
+
+const q=quiz[current]
+
+document.getElementById("question").innerText=q.q
 
 buttons.forEach((b,i)=>{
-b.innerHTML=q.a[i]
-b.classList.remove("correct","wrong")
+b.innerText=q.a[i]
+b.onclick=()=>answer(i)
 })
 
 }
 
 function answer(i){
 
-let q=questions[current]
-let buttons=document.querySelectorAll(".btn")
+const q=quiz[current]
 
 if(i===q.c){
 
-score+=200
-correctSound.play()
 buttons[i].classList.add("correct")
+
+score+=100
 
 }else{
 
-wrongSound.play()
 buttons[i].classList.add("wrong")
 
 }
 
-scoreDisplay()
+setTimeout(()=>{
 
-current++
-
-if(current>=questions.length){
-
-win()
-
-}else{
-
-setTimeout(load,800)
-
-}
-
-}
-
-function scoreDisplay(){
-
-score+=0
+buttons.forEach(b=>{
+b.classList.remove("correct")
+b.classList.remove("wrong")
+})
 
 document.getElementById("score").innerText="Punkte: "+score
 
 if(score>=level*500){
-
 level++
-document.getElementById("level").innerText="Level "+level
-
+document.getElementById("level").innerText="Level: "+level
 }
 
 if(score>=1000){
-
-gift.style.display="block"
-
+document.getElementById("gift").style.display="block"
+document.getElementById("gift").onclick=openGift
 }
+
+current++
+loadQuestion()
+
+},800)
 
 }
 
 function openGift(){
 
-card.style.display="block"
-gift.style.display="none"
+document.getElementById("giftCard").style.display="block"
 
 }
 
 function win(){
 
-game.style.display="none"
-winScreen()
+document.getElementById("quiz").innerHTML="<h1>🏆 Gewonnen!</h1><h2>Punkte: "+score+"</h2>"
 
-}
-
-function winScreen(){
-
-win.style.display="block"
 confetti()
 
 }
@@ -302,16 +318,12 @@ canvas.height=window.innerHeight
 let pieces=[]
 
 for(let i=0;i<200;i++){
-
 pieces.push({
-
 x:Math.random()*canvas.width,
 y:Math.random()*canvas.height,
-size:Math.random()*8+4,
+size:10,
 speed:Math.random()*3+2
-
 })
-
 }
 
 function update(){
@@ -319,19 +331,10 @@ function update(){
 ctx.clearRect(0,0,canvas.width,canvas.height)
 
 pieces.forEach(p=>{
-
 ctx.fillStyle="hsl("+Math.random()*360+",100%,50%)"
 ctx.fillRect(p.x,p.y,p.size,p.size)
-
 p.y+=p.speed
-
-if(p.y>canvas.height){
-
-p.y=0
-p.x=Math.random()*canvas.width
-
-}
-
+if(p.y>canvas.height)p.y=0
 })
 
 requestAnimationFrame(update)
@@ -342,7 +345,9 @@ update()
 
 }
 
-load()
+document.getElementById("music").play()
+
+loadQuestion()
 
 </script>
 
