@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gesellschaft Quiz Ultra</title>
+<title>Gesellschaft Quiz</title>
 
 <style>
 
@@ -19,32 +19,16 @@ h1,h2,h3{
 margin:20px;
 }
 
-button{
-border:none;
-cursor:pointer;
-font-size:18px;
+#timer{
+font-size:50px;
+}
+
+#score{
+font-size:30px;
 margin:10px;
 }
 
-/* 3D Buttons */
-
-.answerBtn{
-height:120px;
-border-radius:20px;
-padding:10px;
-box-shadow:0 8px rgba(0,0,0,0.4);
-transition:0.1s;
-font-size:18px;
-display:flex;
-align-items:center;
-justify-content:center;
-text-align:center;
-}
-
-.answerBtn:active{
-transform:translateY(6px);
-box-shadow:0 2px rgba(0,0,0,0.4);
-}
+/* Grid */
 
 #answers{
 display:grid;
@@ -54,23 +38,28 @@ width:85%;
 margin:auto;
 }
 
+/* 3D Buttons */
+
+.answerBtn{
+height:120px;
+border:none;
+border-radius:20px;
+font-size:18px;
+padding:10px;
+cursor:pointer;
+box-shadow:0 8px rgba(0,0,0,0.4);
+transition:0.1s;
+}
+
+.answerBtn:active{
+transform:translateY(6px);
+box-shadow:0 2px rgba(0,0,0,0.4);
+}
+
 .red{background:#e74c3c;}
 .blue{background:#3498db;}
 .yellow{background:#f1c40f;color:black;}
 .green{background:#2ecc71;}
-
-.playerBox{
-background:white;
-color:black;
-margin:6px auto;
-padding:10px;
-width:60%;
-border-radius:12px;
-}
-
-#timer{
-font-size:50px;
-}
 
 .correct{
 animation:correctFlash 0.5s 4;
@@ -94,16 +83,18 @@ animation:wrongFlash 0.5s 4;
 
 /* Punkte Animation */
 
-#pointsAnim{
+.points{
 font-size:40px;
 color:#f1c40f;
-animation:points 1s forwards;
+animation:pop 1s forwards;
 }
 
-@keyframes points{
+@keyframes pop{
 0%{transform:scale(0.5);opacity:0}
 100%{transform:scale(1.4);opacity:1}
 }
+
+/* Geschenk */
 
 #gift{
 font-size:120px;
@@ -134,11 +125,10 @@ font-size:25px;
 
 <script>
 
-let players=[]
+let score=0
 let currentQuestion=0
 let timeLeft=15
 let timer
-let level=1
 
 const quiz=[
 
@@ -187,7 +177,7 @@ correct:0
 },
 
 {
-question:"Welche Gruppe gibt es?",
+question:"Welche soziale Gruppe gibt es?",
 answers:[
 "Familien",
 "Aliens",
@@ -234,75 +224,13 @@ correct:0
 
 quiz.sort(()=>Math.random()-0.5)
 
-function showStart(){
+function startGame(){
 
 document.getElementById("music").play()
 
-document.getElementById("app").innerHTML=`
-
-<h1>Gesellschaft Quiz</h1>
-
-<button onclick="showJoin()">Spieler hinzufügen</button>
-<button onclick="showPlayers()">Spielerliste</button>
-<button onclick="startQuiz()">Quiz starten</button>
-
-`
-
-}
-
-function showJoin(){
-
-document.getElementById("app").innerHTML=`
-
-<h2>Spieler hinzufügen</h2>
-
-<input id="name" placeholder="Name">
-
-<br>
-
-<button onclick="join()">Beitreten</button>
-<button onclick="showStart()">Zurück</button>
-
-`
-
-}
-
-function join(){
-
-let name=document.getElementById("name").value
-
-if(name==="")return
-
-players.push({name:name,score:0})
-
-alert(name+" ist beigetreten!")
-
-}
-
-function showPlayers(){
-
-let list=players.map(p=>`<div class="playerBox">${p.name}</div>`).join("")
-
-document.getElementById("app").innerHTML=`
-
-<h2>Spielerliste</h2>
-
-${list}
-
-<button onclick="showStart()">Zurück</button>
-
-`
-
-}
-
-function startQuiz(){
-
-if(players.length===0){
-alert("Keine Spieler!")
-return
-}
-
+score=0
 currentQuestion=0
+
 nextQuestion()
 
 }
@@ -310,8 +238,10 @@ nextQuestion()
 function nextQuestion(){
 
 if(currentQuestion>=quiz.length){
+
 endGame()
 return
+
 }
 
 timeLeft=15
@@ -320,7 +250,7 @@ let q=quiz[currentQuestion]
 
 document.getElementById("app").innerHTML=`
 
-<h2>Level ${level}</h2>
+<h2>Punkte: ${score}</h2>
 
 <div id="timer">${timeLeft}</div>
 
@@ -346,7 +276,8 @@ document.getElementById("timer").innerText=timeLeft
 if(timeLeft<=0){
 
 clearInterval(timer)
-showLeaderboard()
+currentQuestion++
+nextQuestion()
 
 }
 
@@ -362,85 +293,50 @@ let correct=quiz[currentQuestion].correct
 
 let buttons=document.querySelectorAll(".answerBtn")
 
-players.forEach(p=>{
-
 if(index===correct){
 
 let points=timeLeft*100
-p.score+=points
-
-document.getElementById("app").innerHTML+=`<div id="pointsAnim">+${points}</div>`
-
-}
-
-})
-
-if(index===correct){
+score+=points
 
 document.getElementById("correctSound").play()
+
 buttons[index].classList.add("correct")
+
+document.getElementById("app").innerHTML+=`<div class="points">+${points}</div>`
 
 }else{
 
 document.getElementById("wrongSound").play()
+
 buttons[index].classList.add("wrong")
 
 }
 
-setTimeout(showLeaderboard,1200)
-
-}
-
-function showLeaderboard(){
+setTimeout(()=>{
 
 currentQuestion++
-
-players.sort((a,b)=>b.score-a.score)
-
-let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("")
-
-document.getElementById("app").innerHTML=`
-
-<h2>Leaderboard</h2>
-
-${list}
-
-<button onclick="nextLevel()">Weiter</button>
-
-`
-
-}
-
-function nextLevel(){
-
-level++
-
 nextQuestion()
+
+},1200)
 
 }
 
 function endGame(){
 
-players.sort((a,b)=>b.score-a.score)
-
-let winner=players[0]
-
 confetti({
-particleCount:500,
-spread:200
+particleCount:400,
+spread:180
 })
-
-let list=players.map(p=>`<div class="playerBox">${p.name} - ${p.score}</div>`).join("")
 
 document.getElementById("app").innerHTML=`
 
-<h1>🏆 Gewinner: ${winner.name}</h1>
+<h1>Quiz beendet!</h1>
 
-${list}
+<h2>Deine Punkte: ${score}</h2>
 
-<h2>🎁 Geschenk freigeschaltet</h2>
+${score>=1000?`<h2>🎁 Geschenk freigeschaltet</h2><div id="gift" onclick="openGift()">🎁</div>`:""}
 
-<div id="gift" onclick="openGift()">🎁</div>
+<button onclick="startGame()">Neues Spiel</button>
 
 `
 
@@ -448,29 +344,27 @@ ${list}
 
 function openGift(){
 
-let cards=[
-"Du hast gut aufgepasst! 🧠",
-"Super gemacht! ⭐",
-"Gesellschaft verstanden! 🎓"
-]
-
-let card=cards[Math.floor(Math.random()*cards.length)]
-
 document.getElementById("app").innerHTML=`
 
 <div class="card">
 
-${card}
+Du hast gut aufgepasst! 🧠
 
 </div>
 
-<button onclick="showStart()">Neues Spiel</button>
+<button onclick="startGame()">Nochmal spielen</button>
 
 `
 
 }
 
-showStart()
+document.getElementById("app").innerHTML=`
+
+<h1>Gesellschaft Quiz</h1>
+
+<button onclick="startGame()">Start</button>
+
+`
 
 </script>
 
