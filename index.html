@@ -10,10 +10,9 @@
 body{
 margin:0;
 font-family:Arial;
-background:linear-gradient(135deg,#4facfe,#00f2fe);
+background:linear-gradient(135deg,#3a7bd5,#00d2ff);
 color:white;
 text-align:center;
-overflow-x:hidden;
 }
 
 h1{
@@ -27,14 +26,15 @@ padding:20px;
 }
 
 #question{
-font-size:28px;
-margin:40px 0;
+font-size:30px;
+margin:30px 0;
+min-height:60px;
 }
 
 .answers{
 display:grid;
 grid-template-columns:1fr 1fr;
-gap:20px;
+gap:15px;
 }
 
 .answer{
@@ -48,9 +48,8 @@ transition:0.2s;
 box-shadow:0 8px 0 rgba(0,0,0,0.3);
 }
 
-.answer:active{
-transform:translateY(4px);
-box-shadow:0 4px 0 rgba(0,0,0,0.3);
+.answer:hover{
+transform:scale(1.05);
 }
 
 .red{background:#e74c3c;}
@@ -59,39 +58,37 @@ box-shadow:0 4px 0 rgba(0,0,0,0.3);
 .green{background:#2ecc71;}
 
 .correct{
-animation:correctFlash 0.5s 4;
+background:#27ae60 !important;
 }
 
 .wrong{
-animation:wrongFlash 0.5s 4;
+background:#c0392b !important;
 }
 
-@keyframes correctFlash{
-0%{background:#2ecc71;}
-50%{background:white;color:black;}
-100%{background:#2ecc71;}
+#score,#level,#timer{
+font-size:22px;
+margin-top:10px;
 }
 
-@keyframes wrongFlash{
-0%{background:#e74c3c;}
-50%{background:black;}
-100%{background:#e74c3c;}
-}
-
-#score{
-font-size:24px;
+#progressBar{
+width:100%;
+height:15px;
+background:rgba(255,255,255,0.3);
+border-radius:10px;
+overflow:hidden;
 margin-top:20px;
 }
 
-#level{
-font-size:18px;
-margin-top:10px;
+#progress{
+height:100%;
+width:0%;
+background:#2ecc71;
 }
 
 #gift{
 display:none;
-margin-top:30px;
-font-size:30px;
+margin-top:25px;
+font-size:28px;
 cursor:pointer;
 animation:giftAnim 1s infinite alternate;
 }
@@ -106,15 +103,18 @@ display:none;
 margin-top:20px;
 background:white;
 color:black;
-padding:30px;
+padding:25px;
 border-radius:15px;
 font-size:24px;
-animation:cardPop 0.6s;
 }
 
-@keyframes cardPop{
-from{transform:scale(0)}
-to{transform:scale(1)}
+#startMusic{
+margin-top:20px;
+padding:10px 20px;
+font-size:16px;
+border:none;
+border-radius:10px;
+cursor:pointer;
 }
 
 canvas{
@@ -133,6 +133,8 @@ pointer-events:none;
 
 <div id="quiz">
 
+<button id="startMusic">🎵 Musik starten</button>
+
 <div id="question"></div>
 
 <div class="answers">
@@ -142,11 +144,17 @@ pointer-events:none;
 <button class="answer green"></button>
 </div>
 
+<div id="timer">Zeit: 15</div>
+
 <div id="score">Punkte: 0</div>
 <div id="level">Level: 1</div>
 
-<div id="gift">🎁 Geschenk öffnen!</div>
-<div id="giftCard">🧠 Du hast gut aufgepasst!</div>
+<div id="progressBar">
+<div id="progress"></div>
+</div>
+
+<div id="gift">🎁 Geschenk öffnen</div>
+<div id="giftCard">🧠 Super! Du hast gut aufgepasst!</div>
 
 </div>
 
@@ -161,6 +169,8 @@ pointer-events:none;
 let score=0
 let level=1
 let current=0
+let time=15
+let timer
 
 const quiz=[
 {q:"Was versteht man unter einer Gesellschaft?",a:["Eine Gemeinschaft von Menschen","Eine Maschine","Ein Gebäude","Eine Armee"],c:0},
@@ -169,17 +179,35 @@ const quiz=[
 {q:"Wie leben Menschen zusammen?",a:["Durch Zusammenarbeit","Gar nicht","Durch Zufall","Durch Glück"],c:0},
 {q:"Was gibt es in einer Gesellschaft?",a:["Regeln und Gesetze","Keine Regeln","Nur Chaos","Nur Spiele"],c:0},
 {q:"Warum ist Kommunikation wichtig?",a:["Damit Menschen sich verstehen","Damit man schreit","Damit man gewinnt","Damit man rennt"],c:0},
-{q:"Was haben Menschen in einer Gesellschaft?",a:["Rechte und Pflichten","Nur Rechte","Nur Pflichten","Gar nichts"],c:0},
-{q:"Wie werden Konflikte gelöst?",a:["Durch Regeln oder Gerichte","Durch Kämpfen","Durch Rennen","Durch Ignorieren"],c:0},
-{q:"Welche Rollen können Menschen haben?",a:["Schüler, Arbeitnehmer, Eltern","Nur Schüler","Nur Lehrer","Keine Rollen"],c:0},
-{q:"Wie arbeiteten Menschen vor der Industrialisierung?",a:["In der Landwirtschaft","In Büros","Mit Robotern","Mit Computern"],c:0},
-{q:"Wo lebten viele Menschen früher?",a:["Auf dem Land","Im Weltraum","Im Meer","In Flugzeugen"],c:0},
-{q:"Wie wurden Produkte früher hergestellt?",a:["Von Hand","Mit Robotern","Mit Computern","Mit Lasern"],c:0}
+{q:"Was haben Menschen in einer Gesellschaft?",a:["Rechte und Pflichten","Nur Rechte","Nur Pflichten","Gar nichts"],c:0}
 ]
 
 quiz.sort(()=>Math.random()-0.5)
 
 const buttons=document.querySelectorAll(".answer")
+
+document.getElementById("startMusic").onclick=()=>{
+document.getElementById("music").play()
+}
+
+function startTimer(){
+
+time=15
+document.getElementById("timer").innerText="Zeit: "+time
+
+timer=setInterval(()=>{
+
+time--
+document.getElementById("timer").innerText="Zeit: "+time
+
+if(time<=0){
+clearInterval(timer)
+nextQuestion()
+}
+
+},1000)
+
+}
 
 function shuffleAnswers(question){
 
@@ -205,6 +233,8 @@ win()
 return
 }
 
+updateProgress()
+
 let q=shuffleAnswers(quiz[current])
 
 document.getElementById("question").innerText=q.q
@@ -214,9 +244,13 @@ b.innerText=q.a[i]
 b.onclick=()=>answer(i,q.c)
 })
 
+startTimer()
+
 }
 
 function answer(i,correct){
+
+clearInterval(timer)
 
 if(i===correct){
 
@@ -226,10 +260,15 @@ score+=100
 }else{
 
 buttons[i].classList.add("wrong")
+buttons[correct].classList.add("correct")
 
 }
 
-setTimeout(()=>{
+setTimeout(nextQuestion,900)
+
+}
+
+function nextQuestion(){
 
 buttons.forEach(b=>{
 b.classList.remove("correct")
@@ -243,25 +282,41 @@ level++
 document.getElementById("level").innerText="Level: "+level
 }
 
-if(score>=1000){
+if(score>=800){
 document.getElementById("gift").style.display="block"
-document.getElementById("gift").onclick=openGift
 }
 
 current++
 loadQuestion()
 
-},800)
-
 }
 
-function openGift(){
+document.getElementById("gift").onclick=()=>{
 document.getElementById("giftCard").style.display="block"
+}
+
+function updateProgress(){
+
+let percent=(current/quiz.length)*100
+document.getElementById("progress").style.width=percent+"%"
+
 }
 
 function win(){
 
-document.getElementById("quiz").innerHTML="<h1>🏆 Gewonnen!</h1><h2>Punkte: "+score+"</h2>"
+let highscore=localStorage.getItem("quizHighscore")||0
+
+if(score>highscore){
+localStorage.setItem("quizHighscore",score)
+highscore=score
+}
+
+document.getElementById("quiz").innerHTML=`
+<h1>🏆 Gewonnen!</h1>
+<h2>Punkte: ${score}</h2>
+<h3>Highscore: ${highscore}</h3>
+<button onclick="location.reload()">🔄 Nochmal spielen</button>
+`
 
 confetti()
 
@@ -281,7 +336,7 @@ for(let i=0;i<200;i++){
 pieces.push({
 x:Math.random()*canvas.width,
 y:Math.random()*canvas.height,
-size:10,
+size:8,
 speed:Math.random()*3+2
 })
 }
@@ -304,8 +359,6 @@ requestAnimationFrame(update)
 update()
 
 }
-
-document.getElementById("music").play()
 
 loadQuestion()
 
